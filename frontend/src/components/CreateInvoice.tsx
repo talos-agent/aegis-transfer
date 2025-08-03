@@ -1,11 +1,12 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { useWriteContract, useWaitForTransactionReceipt, useAccount, useChainId } from 'wagmi'
 import { parseEther, parseUnits } from 'viem'
 import { SAFE_TRANSFER_ABI, getSafeTransferAddress, SUPPORTED_TOKENS, TokenInfo } from '@/lib/contract'
 import { isSupportedNetwork } from '@/lib/network'
 import { NetworkWarning } from './NetworkWarning'
+import { resolveEnsOrAddress, type EnsResolutionResult } from '@/lib/ens'
 
 export function CreateInvoice() {
   const [payer, setPayer] = useState('')
@@ -13,6 +14,10 @@ export function CreateInvoice() {
   const [description, setDescription] = useState('')
   const [expiryDays, setExpiryDays] = useState('7')
   const [selectedToken, setSelectedToken] = useState<TokenInfo>(SUPPORTED_TOKENS[0])
+  
+  const [ensResolution, setEnsResolution] = useState<EnsResolutionResult | null>(null)
+  const [isResolvingEns, setIsResolvingEns] = useState(false)
+  const [resolvedAddress, setResolvedAddress] = useState<string | null>(null)
 
   const chainId = useChainId()
   const { writeContract, data: hash, isPending } = useWriteContract()
@@ -23,10 +28,53 @@ export function CreateInvoice() {
   const safeTransferAddress = getSafeTransferAddress(chainId)
   const isNetworkSupported = isSupportedNetwork(chainId)
 
+  const resolvePayerAddress = useCallback(async (input: string) => {
+    if (!input.trim()) {
+      setEnsResolution(null)
+      setResolvedAddress(null)
+      return
+    }
+
+    setIsResolvingEns(true)
+    try {
+      const result = await resolveEnsOrAddress(input)
+      setEnsResolution(result)
+      setResolvedAddress(result.address)
+    } catch (error) {
+      console.error('ENS resolution failed:', error)
+      setEnsResolution({ address: null, isValid: false, isEns: false, error: 'Resolution failed' })
+      setResolvedAddress(null)
+    } finally {
+      setIsResolvingEns(false)
+    }
+  }, [])
+
+  const handlePayerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setPayer(value)
+    
+    if (ensResolution) {
+      setEnsResolution(null)
+      setResolvedAddress(null)
+    }
+  }
+
+  const handlePayerBlur = () => {
+    if (payer && !ensResolution) {
+      resolvePayerAddress(payer)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!payer || !amount) return
+    const finalPayer = resolvedAddress || payer
+    
+    if (!finalPayer || !amount) return
+
+    if (ensResolution && !ensResolution.isValid) {
+      return
+    }
 
     try {
       const expiryDuration = BigInt(parseInt(expiryDays) * 24 * 60 * 60)
@@ -39,7 +87,7 @@ export function CreateInvoice() {
         abi: SAFE_TRANSFER_ABI,
         functionName: 'createInvoice',
         args: [
-          payer as `0x${string}`, 
+          finalPayer as `0x${string}`, 
           selectedToken.address as `0x${string}`, 
           amountBigInt, 
           expiryDuration, 
@@ -78,18 +126,45 @@ export function CreateInvoice() {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-foreground mb-2">
-            Payer Address
+            Payer Address or ENS Name
           </label>
           <input
             type="text"
             value={payer}
-            onChange={(e) => setPayer(e.target.value)}
-            placeholder="0x..."
+            onChange={handlePayerChange}
+            onBlur={handlePayerBlur}
+            placeholder="0x... or vitalik.eth"
             className="w-full px-4 py-3 border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent bg-input text-foreground transition-all duration-200 shadow-sm"
             required
           />
+          
+          {isResolvingEns && (
+            <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+              Resolving ENS name...
+            </div>
+          )}
+          
+          {ensResolution && !isResolvingEns && (
+            <div className="mt-2 text-sm">
+              {ensResolution.isValid ? (
+                <div className="text-green-600 dark:text-green-400">
+                  {ensResolution.isEns ? (
+                    <>✓ Resolved to: <span className="font-mono">{ensResolution.address?.slice(0, 10)}...{ensResolution.address?.slice(-8)}</span></>
+                  ) : (
+                    <>✓ Valid address</>
+                  )}
+                </div>
+              ) : (
+                <div className="text-red-600 dark:text-red-400">
+                  ✗ {ensResolution.error || 'Invalid address or ENS name'}
+                </div>
+              )}
+            </div>
+          )}
+          
           <p className="text-xs text-muted-foreground mt-2">
-            Address of the person who should pay this invoice
+            Address or ENS name of the person who should pay this invoice
           </p>
         </div>
 

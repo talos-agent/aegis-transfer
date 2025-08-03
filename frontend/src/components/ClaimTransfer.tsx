@@ -1,17 +1,20 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useWriteContract, useWaitForTransactionReceipt, useReadContract, useChainId } from 'wagmi'
 import { formatEther, formatUnits } from 'viem'
 import { SAFE_TRANSFER_ABI, getSafeTransferAddress, SUPPORTED_TOKENS, TransferStatus, TRANSFER_STATUS_LABELS } from '@/lib/contract'
 import { isSupportedNetwork } from '@/lib/network'
 import { NetworkWarning } from './NetworkWarning'
+import { getEnsNameForAddress, formatAddressWithEns } from '@/lib/ens'
 
 export function ClaimTransfer() {
-  const chainId = useChainId()
-  const isNetworkSupported = isSupportedNetwork(chainId)
   const [transferId, setTransferId] = useState('')
   const [claimCode, setClaimCode] = useState('')
+  const [senderEnsName, setSenderEnsName] = useState<string | null>(null)
+  
+  const chainId = useChainId()
+  const isNetworkSupported = isSupportedNetwork(chainId)
   const [transfer, setTransfer] = useState<{
     sender: string
     recipient: string
@@ -46,6 +49,14 @@ export function ClaimTransfer() {
       setTransfer(transferData)
     }
   }
+
+  useEffect(() => {
+    if (transfer?.sender) {
+      getEnsNameForAddress(transfer.sender).then(result => {
+        setSenderEnsName(result.name)
+      })
+    }
+  }, [transfer?.sender])
 
   const formatAmount = (amount: bigint, tokenAddress: string) => {
     const token = SUPPORTED_TOKENS.find(t => t.address.toLowerCase() === tokenAddress.toLowerCase())
@@ -126,7 +137,7 @@ export function ClaimTransfer() {
             <h3 className="font-semibold text-foreground mb-4">Transfer Details</h3>
             <div className="space-y-2 text-sm">
               <div>Amount: <span className="font-bold text-foreground">{formatAmount(transfer.amount, transfer.tokenAddress)}</span></div>
-              <div>From: <span className="font-mono bg-secondary px-2 py-1 rounded-lg text-secondary-foreground">{transfer.sender.slice(0, 6)}...{transfer.sender.slice(-4)}</span></div>
+              <div>From: <span className="font-mono bg-secondary px-2 py-1 rounded-lg text-secondary-foreground">{formatAddressWithEns(transfer.sender, senderEnsName)}</span></div>
               <div>Status: <span className="font-semibold text-foreground">{transferStatus !== undefined ? TRANSFER_STATUS_LABELS[transferStatus] : 'Loading...'}</span></div>
               <div className="text-muted-foreground">Expires: {new Date(Number(transfer.expiryTime) * 1000).toLocaleString()}</div>
               {transfer.claimCode !== '0x0000000000000000000000000000000000000000000000000000000000000000' && (
