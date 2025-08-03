@@ -9,12 +9,16 @@ export default {
     extend: {
       colors: {
         primary: {
-          50: '#eff6ff',
-          100: '#dbeafe', 
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          900: '#1e3a8a',
+          50: '#e0f7ff',
+          100: '#b3ecff', 
+          500: '#00bfff',
+          600: '#0099cc',
+          700: '#007acc',
+          900: '#004d80',
+        },
+        accent: {
+          cyan: '#00bfff',
+          'cyan-glow': '#00d4ff',
         },
         background: 'var(--background)',
         foreground: 'var(--foreground)',

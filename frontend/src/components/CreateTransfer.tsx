@@ -171,7 +171,7 @@ export function CreateTransfer() {
         </p>
         <button
           onClick={() => window.location.reload()}
-          className="px-6 py-3 bg-gradient-to-r from-primary to-primary-700 text-primary-foreground rounded-xl hover:from-primary-600 hover:to-primary-800 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+          className="px-6 py-3 bg-transparent border-2 border-primary text-primary rounded-xl hover:bg-primary hover:text-primary-foreground transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 glow-border"
         >
           Create Another Transfer
         </button>
@@ -303,7 +303,7 @@ export function CreateTransfer() {
             type="button"
             onClick={handleApprove}
             disabled={isPending || isConfirming || !recipient || !amount || !isNetworkSupported}
-            className="w-full py-4 bg-yellow-600 text-white rounded-xl hover:bg-yellow-700 disabled:bg-muted disabled:cursor-not-allowed transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+            className="w-full py-4 bg-transparent border-2 border-yellow-500 text-yellow-500 rounded-xl hover:bg-yellow-500 hover:text-white disabled:bg-muted disabled:border-muted disabled:text-muted-foreground disabled:cursor-not-allowed transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
           >
             {!isNetworkSupported ? 'Switch to Supported Network' : isPending || isConfirming ? 'Approving...' : `Approve ${selectedToken.symbol}`}
           </button>
@@ -311,7 +311,7 @@ export function CreateTransfer() {
           <button
             type="submit"
             disabled={isPending || isConfirming || !recipient || !amount || !isNetworkSupported}
-            className="w-full py-4 bg-gradient-to-r from-primary to-primary-700 text-primary-foreground rounded-xl hover:from-primary-600 hover:to-primary-800 disabled:bg-muted disabled:cursor-not-allowed transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+            className="w-full py-4 bg-transparent border-2 border-primary text-primary rounded-xl hover:bg-primary hover:text-primary-foreground disabled:bg-muted disabled:border-muted disabled:text-muted-foreground disabled:cursor-not-allowed transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 glow-border"
           >
             {!isNetworkSupported ? 'Switch to Supported Network' : isPending || isConfirming ? 'Creating Transfer...' : 'Create Transfer'}
           </button>
