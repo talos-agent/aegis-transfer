@@ -12,16 +12,16 @@ import {ISafeTransfer} from "./ISafeTransfer.sol";
 contract SafeTransfer is ISafeTransfer {
     /// @notice Mapping from transfer ID to transfer details
     mapping(uint256 => Transfer) public transfers;
-    
+
     /// @notice Mapping from sender address to array of transfer IDs they created
     mapping(address => uint256[]) public senderTransfers;
-    
+
     /// @notice Mapping from recipient address to array of transfer IDs they can claim
     mapping(address => uint256[]) public recipientTransfers;
-    
+
     /// @notice Counter for generating unique transfer IDs
     uint256 public nextTransferId;
-    
+
     /// @notice Default expiry duration when none is specified (7 days)
     uint256 public constant DEFAULT_EXPIRY_DURATION = 7 days;
 
@@ -44,7 +44,7 @@ contract SafeTransfer is ISafeTransfer {
         string memory _claimCode
     ) external payable returns (uint256) {
         uint256 transferAmount;
-        
+
         // Handle native ETH transfers
         if (_tokenAddress == address(0)) {
             if (msg.value == 0) revert InsufficientBalance();
@@ -54,7 +54,7 @@ contract SafeTransfer is ISafeTransfer {
             if (_amount == 0) revert InsufficientBalance();
             if (msg.value != 0) revert InsufficientBalance();
             transferAmount = _amount;
-            
+
             IERC20(_tokenAddress).transferFrom(msg.sender, address(this), _amount);
         }
 
@@ -81,13 +81,7 @@ contract SafeTransfer is ISafeTransfer {
         recipientTransfers[_recipient].push(transferId);
 
         emit TransferCreated(
-            transferId,
-            msg.sender,
-            _recipient,
-            _tokenAddress,
-            transferAmount,
-            expiryTime,
-            claimCodeHash != bytes32(0)
+            transferId, msg.sender, _recipient, _tokenAddress, transferAmount, expiryTime, claimCodeHash != bytes32(0)
         );
 
         return transferId;
@@ -102,7 +96,7 @@ contract SafeTransfer is ISafeTransfer {
      */
     function claimTransfer(uint256 _transferId, string memory _claimCode) external {
         Transfer storage transfer = transfers[_transferId];
-        
+
         // Validate transfer exists and caller is authorized
         if (transfer.sender == address(0)) revert TransferNotFound();
         if (transfer.recipient != msg.sender) revert NotAuthorized();
@@ -119,11 +113,11 @@ contract SafeTransfer is ISafeTransfer {
 
         // Mark transfer as claimed
         transfer.claimed = true;
-        
+
         // Execute the transfer
         if (transfer.tokenAddress == address(0)) {
             // Transfer native ETH
-            (bool success, ) = payable(msg.sender).call{value: transfer.amount}("");
+            (bool success,) = payable(msg.sender).call{value: transfer.amount}("");
             require(success, "Transfer failed");
         } else {
             // Transfer ERC20 tokens
@@ -141,7 +135,7 @@ contract SafeTransfer is ISafeTransfer {
      */
     function cancelTransfer(uint256 _transferId) external {
         Transfer storage transfer = transfers[_transferId];
-        
+
         // Validate transfer exists and caller is authorized
         if (transfer.sender == address(0)) revert TransferNotFound();
         if (transfer.sender != msg.sender) revert NotAuthorized();
@@ -154,7 +148,7 @@ contract SafeTransfer is ISafeTransfer {
         // Return funds to sender
         if (transfer.tokenAddress == address(0)) {
             // Refund native ETH
-            (bool success, ) = payable(msg.sender).call{value: transfer.amount}("");
+            (bool success,) = payable(msg.sender).call{value: transfer.amount}("");
             require(success, "Refund failed");
         } else {
             // Refund ERC20 tokens
@@ -208,11 +202,13 @@ contract SafeTransfer is ISafeTransfer {
      */
     function getTransferStatus(uint256 _transferId) external view returns (TransferStatus) {
         Transfer memory transfer = transfers[_transferId];
-        
+
         if (transfer.sender == address(0)) return TransferStatus.NOT_FOUND;
         if (transfer.claimed) return TransferStatus.CLAIMED;
         if (transfer.cancelled) return TransferStatus.CANCELLED;
-        if (transfer.expiryTime != type(uint256).max && block.timestamp > transfer.expiryTime) return TransferStatus.EXPIRED;
+        if (transfer.expiryTime != type(uint256).max && block.timestamp > transfer.expiryTime) {
+            return TransferStatus.EXPIRED;
+        }
         return TransferStatus.PENDING;
     }
 }

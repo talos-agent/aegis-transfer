@@ -1,0 +1,33 @@
+name: Smart Contract Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run Smart Contract Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Show Forge version
+        run: forge --version
+
+      - name: Run tests
+        run: forge test -vvv
+        working-directory: ./contracts
+
+      - name: Check formatting
+        run: forge fmt --check
+        working-directory: ./contracts
