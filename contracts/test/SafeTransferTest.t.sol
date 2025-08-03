@@ -209,7 +209,7 @@ contract SafeTransferTest is Test {
         safeTransfer.claimTransfer(transferId, "");
 
         status = safeTransfer.getTransferStatus(transferId);
-        assertEq(status, "CLAIMED");
+        assertEq(uint8(status), uint8(SafeTransfer.TransferStatus.CLAIMED));
     }
 
     function test_CreateERC20Transfer() public {
