@@ -3,13 +3,13 @@ export const SAFE_TRANSFER_ABI = [
     "type": "function",
     "name": "createTransfer",
     "inputs": [
-      {"name": "_recipient", "type": "address"},
-      {"name": "_tokenAddress", "type": "address"},
-      {"name": "_amount", "type": "uint256"},
-      {"name": "_expiryDuration", "type": "uint256"},
-      {"name": "_claimCode", "type": "string"}
+      { "name": "_recipient", "type": "address" },
+      { "name": "_tokenAddress", "type": "address" },
+      { "name": "_amount", "type": "uint256" },
+      { "name": "_expiryDuration", "type": "uint256" },
+      { "name": "_claimCode", "type": "string" }
     ],
-    "outputs": [{"name": "", "type": "uint256"}],
+    "outputs": [{ "name": "", "type": "uint256" }],
     "stateMutability": "payable"
   },
   {
@@ -69,8 +69,8 @@ export const SAFE_TRANSFER_ABI = [
   {
     "type": "function",
     "name": "getTransferStatus",
-    "inputs": [{"name": "_transferId", "type": "uint256"}],
-    "outputs": [{"name": "", "type": "string"}],
+    "inputs": [{ "name": "_transferId", "type": "uint256" }],
+    "outputs": [{ "name": "", "type": "uint8" }],
     "stateMutability": "view"
   },
   {
@@ -172,6 +172,22 @@ export interface TokenInfo {
   name: string
   decimals: number
 }
+
+export enum TransferStatus {
+  PENDING = 0,
+  CLAIMED = 1,
+  CANCELLED = 2,
+  EXPIRED = 3,
+  NOT_FOUND = 4
+}
+
+export const TRANSFER_STATUS_LABELS = {
+  [TransferStatus.PENDING]: 'PENDING',
+  [TransferStatus.CLAIMED]: 'CLAIMED',
+  [TransferStatus.CANCELLED]: 'CANCELLED',
+  [TransferStatus.EXPIRED]: 'EXPIRED',
+  [TransferStatus.NOT_FOUND]: 'NOT_FOUND'
+} as const
 
 export const SUPPORTED_TOKENS: TokenInfo[] = [
   {

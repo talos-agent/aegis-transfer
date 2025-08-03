@@ -4,6 +4,14 @@ pragma solidity ^0.8.13;
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 
 contract SafeTransfer {
+    enum TransferStatus {
+        PENDING,
+        CLAIMED,
+        CANCELLED,
+        EXPIRED,
+        NOT_FOUND
+    }
+
     struct Transfer {
         address sender;
         address recipient;
@@ -172,13 +180,13 @@ contract SafeTransfer {
         return block.timestamp > transfer.expiryTime;
     }
 
-    function getTransferStatus(uint256 _transferId) external view returns (string memory) {
+    function getTransferStatus(uint256 _transferId) external view returns (TransferStatus) {
         Transfer memory transfer = transfers[_transferId];
         
-        if (transfer.sender == address(0)) return "NOT_FOUND";
-        if (transfer.claimed) return "CLAIMED";
-        if (transfer.cancelled) return "CANCELLED";
-        if (block.timestamp > transfer.expiryTime) return "EXPIRED";
-        return "PENDING";
+        if (transfer.sender == address(0)) return TransferStatus.NOT_FOUND;
+        if (transfer.claimed) return TransferStatus.CLAIMED;
+        if (transfer.cancelled) return TransferStatus.CANCELLED;
+        if (block.timestamp > transfer.expiryTime) return TransferStatus.EXPIRED;
+        return TransferStatus.PENDING;
     }
 }

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { formatEther, formatUnits } from 'viem'
-import { SAFE_TRANSFER_ABI, SAFE_TRANSFER_ADDRESS, Transfer, SUPPORTED_TOKENS } from '@/lib/contract'
+import { SAFE_TRANSFER_ABI, SAFE_TRANSFER_ADDRESS, Transfer, SUPPORTED_TOKENS, TransferStatus, TRANSFER_STATUS_LABELS } from '@/lib/contract'
 
 export function TransferList() {
   const { address } = useAccount()
@@ -82,12 +82,12 @@ export function TransferList() {
     return `${formatUnits(amount, token.decimals)} ${token.symbol}`
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: TransferStatus) => {
     switch (status) {
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800'
-      case 'CLAIMED': return 'bg-green-100 text-green-800'
-      case 'CANCELLED': return 'bg-red-100 text-red-800'
-      case 'EXPIRED': return 'bg-gray-100 text-gray-800'
+      case TransferStatus.PENDING: return 'bg-yellow-100 text-yellow-800'
+      case TransferStatus.CLAIMED: return 'bg-green-100 text-green-800'
+      case TransferStatus.CANCELLED: return 'bg-red-100 text-red-800'
+      case TransferStatus.EXPIRED: return 'bg-gray-100 text-gray-800'
       default: return 'bg-gray-100 text-gray-800'
     }
   }
@@ -137,8 +137,8 @@ export function TransferList() {
               </div>
               
               <div className="text-right">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor('PENDING')}`}>
-                  PENDING
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(TransferStatus.PENDING)}`}>
+                  {TRANSFER_STATUS_LABELS[TransferStatus.PENDING]}
                 </span>
                 <div className="text-xs text-gray-500 mt-1">
                   ID: {transfer.id}

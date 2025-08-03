@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi'
 import { formatEther, formatUnits } from 'viem'
-import { SAFE_TRANSFER_ABI, SAFE_TRANSFER_ADDRESS, SUPPORTED_TOKENS } from '@/lib/contract'
+import { SAFE_TRANSFER_ABI, SAFE_TRANSFER_ADDRESS, SUPPORTED_TOKENS, TransferStatus, TRANSFER_STATUS_LABELS } from '@/lib/contract'
 
 export function ClaimTransfer() {
   const [transferId, setTransferId] = useState('')
@@ -35,7 +35,7 @@ export function ClaimTransfer() {
     abi: SAFE_TRANSFER_ABI,
     functionName: 'getTransferStatus',
     args: transferId ? [BigInt(transferId)] : undefined,
-  })
+  }) as { data: TransferStatus | undefined }
 
   const handleLookupTransfer = () => {
     if (transferData) {
@@ -122,7 +122,7 @@ export function ClaimTransfer() {
             <div className="space-y-1 text-sm">
               <div>Amount: <span className="font-semibold">{formatAmount(transfer.amount, transfer.tokenAddress)}</span></div>
               <div>From: <span className="font-mono">{transfer.sender.slice(0, 6)}...{transfer.sender.slice(-4)}</span></div>
-              <div>Status: <span className="font-semibold">{transferStatus}</span></div>
+              <div>Status: <span className="font-semibold">{transferStatus !== undefined ? TRANSFER_STATUS_LABELS[transferStatus] : 'Loading...'}</span></div>
               <div>Expires: {new Date(Number(transfer.expiryTime) * 1000).toLocaleString()}</div>
               {transfer.claimCode !== '0x0000000000000000000000000000000000000000000000000000000000000000' && (
                 <div className="text-blue-600">🔒 Requires claim code</div>
@@ -132,7 +132,7 @@ export function ClaimTransfer() {
         )}
       </div>
 
-      {transfer && transferStatus === 'PENDING' && (
+      {transfer && transferStatus === TransferStatus.PENDING && (
         <form onSubmit={handleClaimTransfer} className="space-y-4">
           {transfer.claimCode !== '0x0000000000000000000000000000000000000000000000000000000000000000' && (
             <div>
@@ -160,10 +160,10 @@ export function ClaimTransfer() {
         </form>
       )}
 
-      {transfer && transferStatus !== 'PENDING' && (
+      {transfer && transferStatus !== TransferStatus.PENDING && transferStatus !== undefined && (
         <div className="text-center py-4">
           <p className="text-gray-600">
-            This transfer cannot be claimed. Status: <span className="font-semibold">{transferStatus}</span>
+            This transfer cannot be claimed. Status: <span className="font-semibold">{TRANSFER_STATUS_LABELS[transferStatus]}</span>
           </p>
         </div>
       )}

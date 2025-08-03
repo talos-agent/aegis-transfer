@@ -202,8 +202,8 @@ contract SafeTransferTest is Test {
             ""
         );
 
-        string memory status = safeTransfer.getTransferStatus(transferId);
-        assertEq(status, "PENDING");
+        SafeTransfer.TransferStatus status = safeTransfer.getTransferStatus(transferId);
+        assertEq(uint8(status), uint8(SafeTransfer.TransferStatus.PENDING));
 
         vm.prank(recipient);
         safeTransfer.claimTransfer(transferId, "");
