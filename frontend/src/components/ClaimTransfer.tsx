@@ -1,11 +1,12 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi'
+import { useWriteContract, useWaitForTransactionReceipt, useReadContract, useChainId } from 'wagmi'
 import { formatEther, formatUnits } from 'viem'
-import { SAFE_TRANSFER_ABI, SAFE_TRANSFER_ADDRESS, SUPPORTED_TOKENS, TransferStatus, TRANSFER_STATUS_LABELS } from '@/lib/contract'
+import { SAFE_TRANSFER_ABI, getSafeTransferAddress, SUPPORTED_TOKENS, TransferStatus, TRANSFER_STATUS_LABELS } from '@/lib/contract'
 
 export function ClaimTransfer() {
+  const chainId = useChainId()
   const [transferId, setTransferId] = useState('')
   const [claimCode, setClaimCode] = useState('')
   const [transfer, setTransfer] = useState<{
@@ -24,14 +25,14 @@ export function ClaimTransfer() {
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
 
   const { data: transferData } = useReadContract({
-    address: SAFE_TRANSFER_ADDRESS,
+    address: getSafeTransferAddress(chainId),
     abi: SAFE_TRANSFER_ABI,
     functionName: 'getTransfer',
     args: transferId ? [BigInt(transferId)] : undefined,
   })
 
   const { data: transferStatus } = useReadContract({
-    address: SAFE_TRANSFER_ADDRESS,
+    address: getSafeTransferAddress(chainId),
     abi: SAFE_TRANSFER_ABI,
     functionName: 'getTransferStatus',
     args: transferId ? [BigInt(transferId)] : undefined,
@@ -61,7 +62,7 @@ export function ClaimTransfer() {
 
     try {
       writeContract({
-        address: SAFE_TRANSFER_ADDRESS,
+        address: getSafeTransferAddress(chainId),
         abi: SAFE_TRANSFER_ABI,
         functionName: 'claimTransfer',
         args: [BigInt(transferId), claimCode],

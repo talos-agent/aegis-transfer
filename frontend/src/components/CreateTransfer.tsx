@@ -1,9 +1,9 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useWriteContract, useWaitForTransactionReceipt, useAccount, useReadContract } from 'wagmi'
+import { useWriteContract, useWaitForTransactionReceipt, useAccount, useReadContract, useChainId } from 'wagmi'
 import { parseEther, parseUnits, formatUnits } from 'viem'
-import { SAFE_TRANSFER_ABI, SAFE_TRANSFER_ADDRESS, ERC20_ABI, SUPPORTED_TOKENS, TokenInfo } from '@/lib/contract'
+import { SAFE_TRANSFER_ABI, getSafeTransferAddress, ERC20_ABI, SUPPORTED_TOKENS, TokenInfo } from '@/lib/contract'
 
 export function CreateTransfer() {
   const [recipient, setRecipient] = useState('')
@@ -14,16 +14,19 @@ export function CreateTransfer() {
   const [needsApproval, setNeedsApproval] = useState(false)
 
   const { address } = useAccount()
+  const chainId = useChainId()
   const { writeContract, data: hash, isPending } = useWriteContract()
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
   })
 
+  const safeTransferAddress = getSafeTransferAddress(chainId)
+
   const { data: allowance } = useReadContract({
     address: selectedToken.address as `0x${string}`,
     abi: ERC20_ABI,
     functionName: 'allowance',
-    args: [address as `0x${string}`, SAFE_TRANSFER_ADDRESS],
+    args: [address as `0x${string}`, safeTransferAddress],
     query: {
       enabled: selectedToken.address !== '0x0000000000000000000000000000000000000000' && !!address
     }
@@ -39,7 +42,7 @@ export function CreateTransfer() {
         address: selectedToken.address as `0x${string}`,
         abi: ERC20_ABI,
         functionName: 'approve',
-        args: [SAFE_TRANSFER_ADDRESS, amountToApprove],
+        args: [safeTransferAddress, amountToApprove],
       })
     } catch (error) {
       console.error('Error approving token:', error)
@@ -57,7 +60,7 @@ export function CreateTransfer() {
       
       if (isETH) {
         writeContract({
-          address: SAFE_TRANSFER_ADDRESS,
+          address: safeTransferAddress,
           abi: SAFE_TRANSFER_ABI,
           functionName: 'createTransfer',
           args: [
@@ -79,7 +82,7 @@ export function CreateTransfer() {
         }
         
         writeContract({
-          address: SAFE_TRANSFER_ADDRESS,
+          address: safeTransferAddress,
           abi: SAFE_TRANSFER_ABI,
           functionName: 'createTransfer',
           args: [
@@ -204,6 +207,7 @@ export function CreateTransfer() {
             onChange={(e) => setExpiryDays(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
+            <option value="0">Never expires</option>
             <option value="1">1 Day</option>
             <option value="3">3 Days</option>
             <option value="7">7 Days</option>

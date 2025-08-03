@@ -108,6 +108,15 @@ export const SAFE_TRANSFER_ABI = [
   }
 ] as const
 
+const CONTRACT_ADDRESSES: Record<number, `0x${string}`> = {
+  1: process.env.NEXT_PUBLIC_MAINNET_CONTRACT_ADDRESS as `0x${string}` || '0x',
+  42161: process.env.NEXT_PUBLIC_ARBITRUM_CONTRACT_ADDRESS as `0x${string}` || '0x',
+}
+
+export const getSafeTransferAddress = (chainId: number): `0x${string}` => {
+  return CONTRACT_ADDRESSES[chainId] || CONTRACT_ADDRESSES[1]
+}
+
 export const SAFE_TRANSFER_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}` || '0x'
 
 export interface Transfer {
