@@ -5,16 +5,20 @@ import { useAccount, useReadContract, useWriteContract, useWaitForTransactionRec
 import { formatEther, formatUnits } from 'viem'
 import { SAFE_TRANSFER_ABI, getSafeTransferAddress, Transfer, SUPPORTED_TOKENS, TransferStatus, TRANSFER_STATUS_LABELS } from '@/lib/contract'
 import { getEnsNameForAddress, formatAddressWithEns } from '@/lib/ens'
+import { isSupportedNetwork } from '@/lib/network'
 
 export function TransferList() {
   const { address } = useAccount()
   const chainId = useChainId()
+  const isNetworkSupported = isSupportedNetwork(chainId)
   const [transfers, setTransfers] = useState<(Transfer & { id: number })[]>([])
   const [loading, setLoading] = useState(true)
   const [ensNames, setEnsNames] = useState<Record<string, string | null>>({})
+  const [claimCodes, setClaimCodes] = useState<Record<number, string>>({})
+
 
   const { writeContract, data: hash, isPending } = useWriteContract()
-  const { isLoading: isConfirming } = useWaitForTransactionReceipt({ hash })
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
 
   const { data: senderTransferIds } = useReadContract({
     address: getSafeTransferAddress(chainId),
@@ -88,6 +92,24 @@ export function TransferList() {
     }
   }
 
+  const handleClaimTransfer = async (transferId: number) => {
+    try {
+      const claimCode = claimCodes[transferId] || ''
+      writeContract({
+        address: getSafeTransferAddress(chainId),
+        abi: SAFE_TRANSFER_ABI,
+        functionName: 'claimTransfer',
+        args: [BigInt(transferId), claimCode],
+      })
+    } catch (error) {
+      console.error('Error claiming transfer:', error)
+    }
+  }
+
+  const handleClaimCodeChange = (transferId: number, code: string) => {
+    setClaimCodes((prev: Record<number, string>) => ({ ...prev, [transferId]: code }))
+  }
+
   const formatAmount = (amount: bigint, tokenAddress: string) => {
     const token = SUPPORTED_TOKENS.find(t => t.address.toLowerCase() === tokenAddress.toLowerCase())
     if (!token) return `${formatEther(amount)} ETH`
@@ -107,6 +129,20 @@ export function TransferList() {
       case TransferStatus.EXPIRED: return 'bg-muted text-muted-foreground'
       default: return 'bg-muted text-muted-foreground'
     }
+  }
+
+  if (isSuccess) {
+    setTimeout(() => window.location.reload(), 2000)
+    return (
+      <div className="text-center py-8">
+        <div className="text-green-600 text-xl font-semibold mb-4">
+          Transfer Action Completed Successfully!
+        </div>
+        <p className="text-muted-foreground mb-4">
+          The page will refresh automatically.
+        </p>
+      </div>
+    )
   }
 
   if (loading) {
@@ -134,55 +170,152 @@ export function TransferList() {
         const isSender = transfer.sender.toLowerCase() === address?.toLowerCase()
         
         return (
-          <div key={transfer.id} className="border border-gray-200 rounded-lg p-4">
-            <div className="flex justify-between items-start mb-3">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium">
-                    {isSender ? 'Sent to' : 'Received from'}:
-                  </span>
-                  <span className="text-sm text-gray-600 font-mono">
-                    {isSender 
-                      ? formatAddressWithEns(transfer.recipient, ensNames[transfer.recipient])
-                      : formatAddressWithEns(transfer.sender, ensNames[transfer.sender])
-                    }
-                  </span>
-                </div>
-                <div className="text-lg font-semibold">
-                  {formatAmount(transfer.amount, transfer.tokenAddress)}
-                </div>
-              </div>
-              
-              <div className="text-right">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(TransferStatus.PENDING)}`}>
-                  {TRANSFER_STATUS_LABELS[TransferStatus.PENDING]}
-                </span>
-                <div className="text-xs text-gray-500 mt-1">
-                  ID: {transfer.id}
-                </div>
-              </div>
-            </div>
-
-            <div className="text-sm text-gray-600 mb-3">
-              <div>Created: {new Date(Number(transfer.timestamp) * 1000).toLocaleString()}</div>
-              <div>Expires: {new Date(Number(transfer.expiryTime) * 1000).toLocaleString()}</div>
-              {transfer.claimCode !== '0x0000000000000000000000000000000000000000000000000000000000000000' && (
-                <div className="text-primary flex items-center gap-1">🔒 Requires claim code</div>
-              )}
-            </div>
-
-            {isSender && !transfer.claimed && !transfer.cancelled && (
-              <button
-                onClick={() => handleCancelTransfer(transfer.id)}
-                disabled={isPending || isConfirming}
-                className="px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 disabled:bg-muted disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105"
-              >
-                {isPending || isConfirming ? 'Cancelling...' : 'Cancel Transfer'}
-              </button>
-            )}
-          </div>
+          <TransferCard 
+            key={transfer.id} 
+            transfer={transfer} 
+            isSender={isSender}
+            formatAmount={formatAmount}
+            getStatusColor={getStatusColor}
+            handleCancelTransfer={handleCancelTransfer}
+            handleClaimTransfer={handleClaimTransfer}
+            handleClaimCodeChange={handleClaimCodeChange}
+            claimCodes={claimCodes}
+            isPending={isPending}
+            isConfirming={isConfirming}
+            isNetworkSupported={isNetworkSupported}
+            chainId={chainId}
+            ensNames={ensNames}
+          />
         )
       })}
+    </div>
+  )
+}
+
+function TransferCard({ 
+  transfer, 
+  isSender, 
+  formatAmount, 
+  getStatusColor, 
+  handleCancelTransfer, 
+  handleClaimTransfer, 
+  handleClaimCodeChange, 
+  claimCodes, 
+  isPending, 
+  isConfirming, 
+  isNetworkSupported, 
+  chainId,
+  ensNames
+}: {
+  transfer: Transfer & { id: number }
+  isSender: boolean
+  formatAmount: (amount: bigint, tokenAddress: string) => string
+  getStatusColor: (status: TransferStatus) => string
+  handleCancelTransfer: (transferId: number) => void
+  handleClaimTransfer: (transferId: number) => void
+  handleClaimCodeChange: (transferId: number, code: string) => void
+  claimCodes: Record<number, string>
+  isPending: boolean
+  isConfirming: boolean
+  isNetworkSupported: boolean
+  chainId: number
+  ensNames: Record<string, string | null>
+}){
+  const { data: transferStatus } = useReadContract({
+    address: getSafeTransferAddress(chainId),
+    abi: SAFE_TRANSFER_ABI,
+    functionName: 'getTransferStatus',
+    args: [BigInt(transfer.id)],
+  }) as { data: TransferStatus | undefined }
+
+  const currentStatus = transferStatus ?? TransferStatus.PENDING
+  const hasClaimCode = transfer.claimCode !== '0x0000000000000000000000000000000000000000000000000000000000000000'
+  const isExpired = Date.now() > Number(transfer.expiryTime) * 1000
+  const canClaim = !isSender && currentStatus === TransferStatus.PENDING && !isExpired
+  const canCancel = isSender && currentStatus === TransferStatus.PENDING && !isExpired
+
+  return (
+    <div className="border border-gray-200 rounded-lg p-4">
+      <div className="flex justify-between items-start mb-3">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="font-medium">
+              {isSender ? 'Sent to' : 'Received from'}:
+            </span>
+            <span className="text-sm text-gray-600 font-mono">
+              {isSender 
+                ? formatAddressWithEns(transfer.recipient, ensNames[transfer.recipient])
+                : formatAddressWithEns(transfer.sender, ensNames[transfer.sender])
+              }
+            </span>
+          </div>
+          <div className="text-lg font-semibold">
+            {formatAmount(transfer.amount, transfer.tokenAddress)}
+          </div>
+        </div>
+        
+        <div className="text-right">
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(currentStatus)}`}>
+            {TRANSFER_STATUS_LABELS[currentStatus]}
+          </span>
+          <div className="text-xs text-gray-500 mt-1">
+            ID: {transfer.id}
+          </div>
+        </div>
+      </div>
+
+      <div className="text-sm text-gray-600 mb-3">
+        <div>Created: {new Date(Number(transfer.timestamp) * 1000).toLocaleString()}</div>
+        <div>Expires: {new Date(Number(transfer.expiryTime) * 1000).toLocaleString()}</div>
+        {hasClaimCode && (
+          <div className="text-primary flex items-center gap-1">🔒 Requires claim code</div>
+        )}
+      </div>
+
+      {canClaim && (
+        <div className="space-y-3">
+          {hasClaimCode && (
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Claim Code
+              </label>
+              <input
+                type="text"
+                value={claimCodes[transfer.id] || ''}
+                onChange={(e) => handleClaimCodeChange(transfer.id, e.target.value)}
+                placeholder="Enter the claim code"
+                className="w-full px-4 py-3 border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent bg-input text-foreground transition-all duration-200 shadow-sm"
+                required
+              />
+            </div>
+          )}
+          <button
+            onClick={() => handleClaimTransfer(transfer.id)}
+            disabled={isPending || isConfirming || !isNetworkSupported || (hasClaimCode && !claimCodes[transfer.id])}
+            className="w-full py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:bg-muted disabled:cursor-not-allowed transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+          >
+            {!isNetworkSupported ? 'Switch to Supported Network' : isPending || isConfirming ? 'Claiming Transfer...' : 'Claim Transfer'}
+          </button>
+        </div>
+      )}
+
+      {canCancel && (
+        <button
+          onClick={() => handleCancelTransfer(transfer.id)}
+          disabled={isPending || isConfirming}
+          className="px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 disabled:bg-muted disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105"
+        >
+          {isPending || isConfirming ? 'Cancelling...' : 'Cancel Transfer'}
+        </button>
+      )}
+
+      {currentStatus !== TransferStatus.PENDING && (
+        <div className="text-center py-2">
+          <p className="text-muted-foreground text-sm">
+            This transfer is {TRANSFER_STATUS_LABELS[currentStatus].toLowerCase()} and cannot be modified.
+          </p>
+        </div>
+      )}
     </div>
   )
 }

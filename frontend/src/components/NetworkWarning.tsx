@@ -27,7 +27,7 @@ export function NetworkWarning() {
           </p>
           <button
             onClick={() => open({ view: 'Networks' })}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg transform hover:scale-105"
           >
             Switch Network
           </button>
