@@ -6,11 +6,13 @@ import { ConnectWallet } from '@/components/ConnectWallet'
 import { CreateTransfer } from '@/components/CreateTransfer'
 import { TransferList } from '@/components/TransferList'
 import { ClaimTransfer } from '@/components/ClaimTransfer'
+import { CreateInvoice } from '@/components/CreateInvoice'
+import { InvoiceList } from '@/components/InvoiceList'
 import { ThemeToggle } from '@/components/ThemeToggle'
 
 export default function Home() {
   const { isConnected } = useAccount()
-  const [activeTab, setActiveTab] = useState<'send' | 'receive' | 'claim'>('send')
+  const [activeTab, setActiveTab] = useState<'send' | 'receive' | 'claim' | 'invoice'>('send')
 
   if (!isConnected) {
     return (
@@ -82,6 +84,16 @@ export default function Home() {
               >
                 Claim Transfer
               </button>
+              <button
+                onClick={() => setActiveTab('invoice')}
+                className={`flex-1 py-4 px-6 text-center font-semibold transition-all duration-200 ${
+                  activeTab === 'invoice'
+                    ? 'text-primary bg-background border-b-2 border-primary shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                }`}
+              >
+                Invoices
+              </button>
             </nav>
           </div>
 
@@ -89,6 +101,14 @@ export default function Home() {
             {activeTab === 'send' && <CreateTransfer />}
             {activeTab === 'receive' && <TransferList />}
             {activeTab === 'claim' && <ClaimTransfer />}
+            {activeTab === 'invoice' && (
+              <div className="space-y-8">
+                <CreateInvoice />
+                <div className="border-t border-border pt-8">
+                  <InvoiceList />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

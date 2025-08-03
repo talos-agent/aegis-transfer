@@ -22,6 +22,12 @@ contract SafeTransfer is ISafeTransfer {
     /// @notice Counter for generating unique transfer IDs
     uint256 public nextTransferId;
 
+    /// @notice Mapping to track which transfers are invoices vs regular transfers
+    mapping(uint256 => bool) public isInvoice;
+
+    /// @notice Mapping from invoice ID to description
+    mapping(uint256 => string) public invoiceDescriptions;
+
     /// @notice Default expiry duration when none is specified (7 days)
     uint256 public constant DEFAULT_EXPIRY_DURATION = 7 days;
 
@@ -210,5 +216,96 @@ contract SafeTransfer is ISafeTransfer {
             return TransferStatus.EXPIRED;
         }
         return TransferStatus.PENDING;
+    }
+
+    /**
+     * @notice Creates an invoice requesting payment from a specific payer
+     * @param _payer Address that should pay the invoice
+     * @param _tokenAddress Token contract address (use 0x0 for native ETH)
+     * @param _amount Amount requested
+     * @param _expiryDuration Duration in seconds until invoice expires (0 for default)
+     * @param _description Optional description for the invoice
+     * @return invoiceId Unique identifier for the created invoice
+     */
+    function createInvoice(
+        address _payer,
+        address _tokenAddress,
+        uint256 _amount,
+        uint256 _expiryDuration,
+        string memory _description
+    ) external returns (uint256) {
+        if (_amount == 0) revert InsufficientBalance();
+        if (_payer == address(0)) revert NotAuthorized();
+
+        uint256 invoiceId = nextTransferId++;
+        uint256 expiryTime = _expiryDuration > 0 ? block.timestamp + _expiryDuration : type(uint256).max;
+
+        transfers[invoiceId] = Transfer({
+            sender: _payer,
+            recipient: msg.sender,
+            tokenAddress: _tokenAddress,
+            amount: _amount,
+            timestamp: block.timestamp,
+            expiryTime: expiryTime,
+            claimCode: bytes32(0),
+            claimed: false,
+            cancelled: false
+        });
+
+        isInvoice[invoiceId] = true;
+        invoiceDescriptions[invoiceId] = _description;
+
+        senderTransfers[_payer].push(invoiceId);
+        recipientTransfers[msg.sender].push(invoiceId);
+
+        emit InvoiceCreated(invoiceId, msg.sender, _payer, _tokenAddress, _amount, expiryTime, _description);
+
+        return invoiceId;
+    }
+
+    /**
+     * @notice Pays an existing invoice
+     * @param _invoiceId Unique identifier of the invoice to pay
+     */
+    function payInvoice(uint256 _invoiceId) external payable {
+        Transfer storage invoice = transfers[_invoiceId];
+
+        if (invoice.sender == address(0)) revert InvoiceNotFound();
+        if (!isInvoice[_invoiceId]) revert InvoiceNotFound();
+        if (invoice.sender != msg.sender) revert NotDesignatedPayer();
+        if (invoice.claimed) revert InvoiceAlreadyPaid();
+        if (invoice.cancelled) revert TransferAlreadyCancelled();
+        if (invoice.expiryTime != type(uint256).max && block.timestamp > invoice.expiryTime) revert TransferExpired();
+
+        invoice.claimed = true;
+
+        if (invoice.tokenAddress == address(0)) {
+            if (msg.value != invoice.amount) revert InsufficientBalance();
+            (bool success,) = payable(invoice.recipient).call{value: invoice.amount}("");
+            require(success, "Payment failed");
+        } else {
+            if (msg.value != 0) revert InsufficientBalance();
+            IERC20(invoice.tokenAddress).transferFrom(msg.sender, invoice.recipient, invoice.amount);
+        }
+
+        emit InvoicePaid(_invoiceId, msg.sender, invoice.recipient, invoice.tokenAddress, invoice.amount);
+    }
+
+    /**
+     * @notice Gets the description of an invoice
+     * @param _invoiceId Unique identifier of the invoice
+     * @return description The invoice description
+     */
+    function getInvoiceDescription(uint256 _invoiceId) external view returns (string memory) {
+        return invoiceDescriptions[_invoiceId];
+    }
+
+    /**
+     * @notice Checks if a transfer ID represents an invoice
+     * @param _transferId Unique identifier to check
+     * @return isInvoiceFlag True if the ID represents an invoice, false otherwise
+     */
+    function getIsInvoice(uint256 _transferId) external view returns (bool) {
+        return isInvoice[_transferId];
     }
 }
