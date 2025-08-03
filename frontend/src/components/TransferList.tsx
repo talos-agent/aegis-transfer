@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi'
 import { formatEther, formatUnits } from 'viem'
 import { SAFE_TRANSFER_ABI, getSafeTransferAddress, Transfer, SUPPORTED_TOKENS, TransferStatus, TRANSFER_STATUS_LABELS } from '@/lib/contract'
+import { getEnsNameForAddress, formatAddressWithEns } from '@/lib/ens'
 import { isSupportedNetwork } from '@/lib/network'
 
 export function TransferList() {
@@ -12,7 +13,9 @@ export function TransferList() {
   const isNetworkSupported = isSupportedNetwork(chainId)
   const [transfers, setTransfers] = useState<(Transfer & { id: number })[]>([])
   const [loading, setLoading] = useState(true)
+  const [ensNames, setEnsNames] = useState<Record<string, string | null>>({})
   const [claimCodes, setClaimCodes] = useState<Record<number, string>>({})
+
 
   const { writeContract, data: hash, isPending } = useWriteContract()
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
@@ -56,6 +59,20 @@ export function TransferList() {
       const validTransfers = transferResults.filter(Boolean)
       
       setTransfers(validTransfers)
+      
+      const uniqueAddresses = [...new Set(validTransfers.flatMap(t => [t.sender, t.recipient]))]
+      const ensPromises = uniqueAddresses.map(async (addr) => {
+        const result = await getEnsNameForAddress(addr)
+        return { address: addr, name: result.name }
+      })
+      
+      const ensResults = await Promise.all(ensPromises)
+      const ensMap = ensResults.reduce((acc, { address, name }) => {
+        acc[address] = name
+        return acc
+      }, {} as Record<string, string | null>)
+      
+      setEnsNames(ensMap)
       setLoading(false)
     }
 
@@ -90,7 +107,7 @@ export function TransferList() {
   }
 
   const handleClaimCodeChange = (transferId: number, code: string) => {
-    setClaimCodes(prev => ({ ...prev, [transferId]: code }))
+    setClaimCodes((prev: Record<number, string>) => ({ ...prev, [transferId]: code }))
   }
 
   const formatAmount = (amount: bigint, tokenAddress: string) => {
@@ -167,6 +184,7 @@ export function TransferList() {
             isConfirming={isConfirming}
             isNetworkSupported={isNetworkSupported}
             chainId={chainId}
+            ensNames={ensNames}
           />
         )
       })}
@@ -186,7 +204,8 @@ function TransferCard({
   isPending, 
   isConfirming, 
   isNetworkSupported, 
-  chainId 
+  chainId,
+  ensNames
 }: {
   transfer: Transfer & { id: number }
   isSender: boolean
@@ -200,7 +219,8 @@ function TransferCard({
   isConfirming: boolean
   isNetworkSupported: boolean
   chainId: number
-}) {
+  ensNames: Record<string, string | null>
+}){
   const { data: transferStatus } = useReadContract({
     address: getSafeTransferAddress(chainId),
     abi: SAFE_TRANSFER_ABI,
@@ -224,8 +244,8 @@ function TransferCard({
             </span>
             <span className="text-sm text-gray-600 font-mono">
               {isSender 
-                ? `${transfer.recipient.slice(0, 6)}...${transfer.recipient.slice(-4)}`
-                : `${transfer.sender.slice(0, 6)}...${transfer.sender.slice(-4)}`
+                ? formatAddressWithEns(transfer.recipient, ensNames[transfer.recipient])
+                : formatAddressWithEns(transfer.sender, ensNames[transfer.sender])
               }
             </span>
           </div>
