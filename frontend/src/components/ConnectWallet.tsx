@@ -30,14 +30,14 @@ export function ConnectWallet() {
           
           <button
             onClick={() => open({ view: 'Networks' })}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg transform hover:scale-105"
+            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-xl hover:bg-secondary/80 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg transform hover:scale-105"
           >
             Switch Network
           </button>
           
           <button
             onClick={() => open({ view: 'Account' })}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg transform hover:scale-105"
+            className="px-4 py-2 bg-muted text-muted-foreground rounded-xl hover:bg-muted/80 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg transform hover:scale-105"
           >
             Account
           </button>
