@@ -4,9 +4,12 @@ import React, { useState } from 'react'
 import { useWriteContract, useWaitForTransactionReceipt, useReadContract, useChainId } from 'wagmi'
 import { formatEther, formatUnits } from 'viem'
 import { SAFE_TRANSFER_ABI, getSafeTransferAddress, SUPPORTED_TOKENS, TransferStatus, TRANSFER_STATUS_LABELS } from '@/lib/contract'
+import { isSupportedNetwork } from '@/lib/network'
+import { NetworkWarning } from './NetworkWarning'
 
 export function ClaimTransfer() {
   const chainId = useChainId()
+  const isNetworkSupported = isSupportedNetwork(chainId)
   const [transferId, setTransferId] = useState('')
   const [claimCode, setClaimCode] = useState('')
   const [transfer, setTransfer] = useState<{
@@ -94,6 +97,7 @@ export function ClaimTransfer() {
   return (
     <div className="max-w-md mx-auto">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Claim Transfer</h2>
+      <NetworkWarning />
       
       <div className="space-y-4 mb-6">
         <div>
@@ -153,10 +157,10 @@ export function ClaimTransfer() {
 
           <button
             type="submit"
-            disabled={isPending || isConfirming || !transferId}
+            disabled={isPending || isConfirming || !transferId || !isNetworkSupported}
             className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
           >
-            {isPending || isConfirming ? 'Claiming Transfer...' : 'Claim Transfer'}
+            {!isNetworkSupported ? 'Switch to Supported Network' : isPending || isConfirming ? 'Claiming Transfer...' : 'Claim Transfer'}
           </button>
         </form>
       )}

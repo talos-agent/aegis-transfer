@@ -4,6 +4,8 @@ import React, { useState } from 'react'
 import { useWriteContract, useWaitForTransactionReceipt, useAccount, useReadContract, useChainId } from 'wagmi'
 import { parseEther, parseUnits, formatUnits } from 'viem'
 import { SAFE_TRANSFER_ABI, getSafeTransferAddress, ERC20_ABI, SUPPORTED_TOKENS, TokenInfo } from '@/lib/contract'
+import { isSupportedNetwork } from '@/lib/network'
+import { NetworkWarning } from './NetworkWarning'
 
 export function CreateTransfer() {
   const [recipient, setRecipient] = useState('')
@@ -21,6 +23,7 @@ export function CreateTransfer() {
   })
 
   const safeTransferAddress = getSafeTransferAddress(chainId)
+  const isNetworkSupported = isSupportedNetwork(chainId)
 
   const { data: allowance } = useReadContract({
     address: selectedToken.address as `0x${string}`,
@@ -131,6 +134,7 @@ export function CreateTransfer() {
   return (
     <div className="max-w-md mx-auto">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Send Transfer</h2>
+      <NetworkWarning />
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -220,18 +224,18 @@ export function CreateTransfer() {
           <button
             type="button"
             onClick={handleApprove}
-            disabled={isPending || isConfirming || !recipient || !amount}
+            disabled={isPending || isConfirming || !recipient || !amount || !isNetworkSupported}
             className="w-full py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
           >
-            {isPending || isConfirming ? 'Approving...' : `Approve ${selectedToken.symbol}`}
+            {!isNetworkSupported ? 'Switch to Supported Network' : isPending || isConfirming ? 'Approving...' : `Approve ${selectedToken.symbol}`}
           </button>
         ) : (
           <button
             type="submit"
-            disabled={isPending || isConfirming || !recipient || !amount}
+            disabled={isPending || isConfirming || !recipient || !amount || !isNetworkSupported}
             className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
           >
-            {isPending || isConfirming ? 'Creating Transfer...' : 'Create Transfer'}
+            {!isNetworkSupported ? 'Switch to Supported Network' : isPending || isConfirming ? 'Creating Transfer...' : 'Create Transfer'}
           </button>
         )}
       </form>
