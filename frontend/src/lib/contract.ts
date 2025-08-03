@@ -3,11 +3,13 @@ export const SAFE_TRANSFER_ABI = [
     "type": "function",
     "name": "createTransfer",
     "inputs": [
-      {"name": "_recipient", "type": "address"},
-      {"name": "_expiryDuration", "type": "uint256"},
-      {"name": "_claimCode", "type": "string"}
+      { "name": "_recipient", "type": "address" },
+      { "name": "_tokenAddress", "type": "address" },
+      { "name": "_amount", "type": "uint256" },
+      { "name": "_expiryDuration", "type": "uint256" },
+      { "name": "_claimCode", "type": "string" }
     ],
-    "outputs": [{"name": "", "type": "uint256"}],
+    "outputs": [{ "name": "", "type": "uint256" }],
     "stateMutability": "payable"
   },
   {
@@ -38,6 +40,7 @@ export const SAFE_TRANSFER_ABI = [
         "components": [
           {"name": "sender", "type": "address"},
           {"name": "recipient", "type": "address"},
+          {"name": "tokenAddress", "type": "address"},
           {"name": "amount", "type": "uint256"},
           {"name": "timestamp", "type": "uint256"},
           {"name": "expiryTime", "type": "uint256"},
@@ -66,8 +69,8 @@ export const SAFE_TRANSFER_ABI = [
   {
     "type": "function",
     "name": "getTransferStatus",
-    "inputs": [{"name": "_transferId", "type": "uint256"}],
-    "outputs": [{"name": "", "type": "string"}],
+    "inputs": [{ "name": "_transferId", "type": "uint256" }],
+    "outputs": [{ "name": "", "type": "uint8" }],
     "stateMutability": "view"
   },
   {
@@ -77,6 +80,7 @@ export const SAFE_TRANSFER_ABI = [
       {"name": "transferId", "type": "uint256", "indexed": true},
       {"name": "sender", "type": "address", "indexed": true},
       {"name": "recipient", "type": "address", "indexed": true},
+      {"name": "tokenAddress", "type": "address", "indexed": true},
       {"name": "amount", "type": "uint256", "indexed": false},
       {"name": "expiryTime", "type": "uint256", "indexed": false},
       {"name": "hasClaimCode", "type": "bool", "indexed": false}
@@ -88,6 +92,7 @@ export const SAFE_TRANSFER_ABI = [
     "inputs": [
       {"name": "transferId", "type": "uint256", "indexed": true},
       {"name": "recipient", "type": "address", "indexed": true},
+      {"name": "tokenAddress", "type": "address", "indexed": true},
       {"name": "amount", "type": "uint256", "indexed": false}
     ]
   },
@@ -97,6 +102,7 @@ export const SAFE_TRANSFER_ABI = [
     "inputs": [
       {"name": "transferId", "type": "uint256", "indexed": true},
       {"name": "sender", "type": "address", "indexed": true},
+      {"name": "tokenAddress", "type": "address", "indexed": true},
       {"name": "amount", "type": "uint256", "indexed": false}
     ]
   }
@@ -107,6 +113,7 @@ export const SAFE_TRANSFER_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as
 export interface Transfer {
   sender: string
   recipient: string
+  tokenAddress: string
   amount: bigint
   timestamp: bigint
   expiryTime: bigint
@@ -114,3 +121,97 @@ export interface Transfer {
   claimed: boolean
   cancelled: boolean
 }
+
+export const ERC20_ABI = [
+  {
+    "type": "function",
+    "name": "approve",
+    "inputs": [
+      {"name": "spender", "type": "address"},
+      {"name": "amount", "type": "uint256"}
+    ],
+    "outputs": [{"name": "", "type": "bool"}],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "allowance",
+    "inputs": [
+      {"name": "owner", "type": "address"},
+      {"name": "spender", "type": "address"}
+    ],
+    "outputs": [{"name": "", "type": "uint256"}],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "balanceOf",
+    "inputs": [{"name": "account", "type": "address"}],
+    "outputs": [{"name": "", "type": "uint256"}],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "symbol",
+    "inputs": [],
+    "outputs": [{"name": "", "type": "string"}],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "decimals",
+    "inputs": [],
+    "outputs": [{"name": "", "type": "uint8"}],
+    "stateMutability": "view"
+  }
+] as const
+
+export interface TokenInfo {
+  address: string
+  symbol: string
+  name: string
+  decimals: number
+}
+
+export enum TransferStatus {
+  PENDING = 0,
+  CLAIMED = 1,
+  CANCELLED = 2,
+  EXPIRED = 3,
+  NOT_FOUND = 4
+}
+
+export const TRANSFER_STATUS_LABELS = {
+  [TransferStatus.PENDING]: 'PENDING',
+  [TransferStatus.CLAIMED]: 'CLAIMED',
+  [TransferStatus.CANCELLED]: 'CANCELLED',
+  [TransferStatus.EXPIRED]: 'EXPIRED',
+  [TransferStatus.NOT_FOUND]: 'NOT_FOUND'
+} as const
+
+export const SUPPORTED_TOKENS: TokenInfo[] = [
+  {
+    address: '0x0000000000000000000000000000000000000000',
+    symbol: 'ETH',
+    name: 'Ethereum',
+    decimals: 18
+  },
+  {
+    address: '0xA0b86a33E6441b8e776f89d2e4e8d8e8e8e8e8e8',
+    symbol: 'USDC',
+    name: 'USD Coin',
+    decimals: 6
+  },
+  {
+    address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+    symbol: 'USDT',
+    name: 'Tether USD',
+    decimals: 6
+  },
+  {
+    address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+    symbol: 'DAI',
+    name: 'Dai Stablecoin',
+    decimals: 18
+  }
+]

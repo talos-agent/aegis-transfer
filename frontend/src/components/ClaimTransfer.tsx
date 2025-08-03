@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react'
 import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi'
-import { formatEther } from 'viem'
-import { SAFE_TRANSFER_ABI, SAFE_TRANSFER_ADDRESS } from '@/lib/contract'
+import { formatEther, formatUnits } from 'viem'
+import { SAFE_TRANSFER_ABI, SAFE_TRANSFER_ADDRESS, SUPPORTED_TOKENS, TransferStatus, TRANSFER_STATUS_LABELS } from '@/lib/contract'
 
 export function ClaimTransfer() {
   const [transferId, setTransferId] = useState('')
@@ -11,6 +11,7 @@ export function ClaimTransfer() {
   const [transfer, setTransfer] = useState<{
     sender: string
     recipient: string
+    tokenAddress: string
     amount: bigint
     timestamp: bigint
     expiryTime: bigint
@@ -34,12 +35,23 @@ export function ClaimTransfer() {
     abi: SAFE_TRANSFER_ABI,
     functionName: 'getTransferStatus',
     args: transferId ? [BigInt(transferId)] : undefined,
-  })
+  }) as { data: TransferStatus | undefined }
 
   const handleLookupTransfer = () => {
     if (transferData) {
       setTransfer(transferData)
     }
+  }
+
+  const formatAmount = (amount: bigint, tokenAddress: string) => {
+    const token = SUPPORTED_TOKENS.find(t => t.address.toLowerCase() === tokenAddress.toLowerCase())
+    if (!token) return `${formatEther(amount)} ETH`
+    
+    if (token.address === '0x0000000000000000000000000000000000000000') {
+      return `${formatEther(amount)} ${token.symbol}`
+    }
+    
+    return `${formatUnits(amount, token.decimals)} ${token.symbol}`
   }
 
   const handleClaimTransfer = async (e: React.FormEvent) => {
@@ -108,9 +120,9 @@ export function ClaimTransfer() {
           <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
             <h3 className="font-medium mb-2">Transfer Details</h3>
             <div className="space-y-1 text-sm">
-              <div>Amount: <span className="font-semibold">{formatEther(transfer.amount)} ETH</span></div>
+              <div>Amount: <span className="font-semibold">{formatAmount(transfer.amount, transfer.tokenAddress)}</span></div>
               <div>From: <span className="font-mono">{transfer.sender.slice(0, 6)}...{transfer.sender.slice(-4)}</span></div>
-              <div>Status: <span className="font-semibold">{transferStatus}</span></div>
+              <div>Status: <span className="font-semibold">{transferStatus !== undefined ? TRANSFER_STATUS_LABELS[transferStatus] : 'Loading...'}</span></div>
               <div>Expires: {new Date(Number(transfer.expiryTime) * 1000).toLocaleString()}</div>
               {transfer.claimCode !== '0x0000000000000000000000000000000000000000000000000000000000000000' && (
                 <div className="text-blue-600">🔒 Requires claim code</div>
@@ -120,7 +132,7 @@ export function ClaimTransfer() {
         )}
       </div>
 
-      {transfer && transferStatus === 'PENDING' && (
+      {transfer && transferStatus === TransferStatus.PENDING && (
         <form onSubmit={handleClaimTransfer} className="space-y-4">
           {transfer.claimCode !== '0x0000000000000000000000000000000000000000000000000000000000000000' && (
             <div>
@@ -148,10 +160,10 @@ export function ClaimTransfer() {
         </form>
       )}
 
-      {transfer && transferStatus !== 'PENDING' && (
+      {transfer && transferStatus !== TransferStatus.PENDING && transferStatus !== undefined && (
         <div className="text-center py-4">
           <p className="text-gray-600">
-            This transfer cannot be claimed. Status: <span className="font-semibold">{transferStatus}</span>
+            This transfer cannot be claimed. Status: <span className="font-semibold">{TRANSFER_STATUS_LABELS[transferStatus]}</span>
           </p>
         </div>
       )}

@@ -1,10 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import {IERC20} from "forge-std/interfaces/IERC20.sol";
+
 contract SafeTransfer {
+    enum TransferStatus {
+        PENDING,
+        CLAIMED,
+        CANCELLED,
+        EXPIRED,
+        NOT_FOUND
+    }
+
     struct Transfer {
         address sender;
         address recipient;
+        address tokenAddress;
         uint256 amount;
         uint256 timestamp;
         uint256 expiryTime;
@@ -24,6 +35,7 @@ contract SafeTransfer {
         uint256 indexed transferId,
         address indexed sender,
         address indexed recipient,
+        address indexed tokenAddress,
         uint256 amount,
         uint256 expiryTime,
         bool hasClaimCode
@@ -32,12 +44,14 @@ contract SafeTransfer {
     event TransferClaimed(
         uint256 indexed transferId,
         address indexed recipient,
+        address indexed tokenAddress,
         uint256 amount
     );
 
     event TransferCancelled(
         uint256 indexed transferId,
         address indexed sender,
+        address indexed tokenAddress,
         uint256 amount
     );
 
@@ -52,10 +66,23 @@ contract SafeTransfer {
 
     function createTransfer(
         address _recipient,
+        address _tokenAddress,
+        uint256 _amount,
         uint256 _expiryDuration,
         string memory _claimCode
     ) external payable returns (uint256) {
-        if (msg.value == 0) revert InsufficientBalance();
+        uint256 transferAmount;
+        
+        if (_tokenAddress == address(0)) {
+            if (msg.value == 0) revert InsufficientBalance();
+            transferAmount = msg.value;
+        } else {
+            if (_amount == 0) revert InsufficientBalance();
+            if (msg.value != 0) revert InsufficientBalance();
+            transferAmount = _amount;
+            
+            IERC20(_tokenAddress).transferFrom(msg.sender, address(this), _amount);
+        }
 
         uint256 transferId = nextTransferId++;
         uint256 expiryTime = block.timestamp + (_expiryDuration > 0 ? _expiryDuration : DEFAULT_EXPIRY_DURATION);
@@ -64,7 +91,8 @@ contract SafeTransfer {
         transfers[transferId] = Transfer({
             sender: msg.sender,
             recipient: _recipient,
-            amount: msg.value,
+            tokenAddress: _tokenAddress,
+            amount: transferAmount,
             timestamp: block.timestamp,
             expiryTime: expiryTime,
             claimCode: claimCodeHash,
@@ -79,7 +107,8 @@ contract SafeTransfer {
             transferId,
             msg.sender,
             _recipient,
-            msg.value,
+            _tokenAddress,
+            transferAmount,
             expiryTime,
             claimCodeHash != bytes32(0)
         );
@@ -104,10 +133,14 @@ contract SafeTransfer {
 
         transfer.claimed = true;
         
-        (bool success, ) = payable(msg.sender).call{value: transfer.amount}("");
-        require(success, "Transfer failed");
+        if (transfer.tokenAddress == address(0)) {
+            (bool success, ) = payable(msg.sender).call{value: transfer.amount}("");
+            require(success, "Transfer failed");
+        } else {
+            IERC20(transfer.tokenAddress).transfer(msg.sender, transfer.amount);
+        }
 
-        emit TransferClaimed(_transferId, msg.sender, transfer.amount);
+        emit TransferClaimed(_transferId, msg.sender, transfer.tokenAddress, transfer.amount);
     }
 
     function cancelTransfer(uint256 _transferId) external {
@@ -118,16 +151,16 @@ contract SafeTransfer {
         if (transfer.claimed) revert TransferAlreadyClaimed();
         if (transfer.cancelled) revert TransferAlreadyCancelled();
 
-        if (block.timestamp <= transfer.expiryTime) {
-            transfer.cancelled = true;
+        transfer.cancelled = true;
+
+        if (transfer.tokenAddress == address(0)) {
+            (bool success, ) = payable(msg.sender).call{value: transfer.amount}("");
+            require(success, "Refund failed");
         } else {
-            transfer.cancelled = true;
+            IERC20(transfer.tokenAddress).transfer(msg.sender, transfer.amount);
         }
 
-        (bool success, ) = payable(msg.sender).call{value: transfer.amount}("");
-        require(success, "Refund failed");
-
-        emit TransferCancelled(_transferId, msg.sender, transfer.amount);
+        emit TransferCancelled(_transferId, msg.sender, transfer.tokenAddress, transfer.amount);
     }
 
     function getTransfer(uint256 _transferId) external view returns (Transfer memory) {
@@ -147,13 +180,13 @@ contract SafeTransfer {
         return block.timestamp > transfer.expiryTime;
     }
 
-    function getTransferStatus(uint256 _transferId) external view returns (string memory) {
+    function getTransferStatus(uint256 _transferId) external view returns (TransferStatus) {
         Transfer memory transfer = transfers[_transferId];
         
-        if (transfer.sender == address(0)) return "NOT_FOUND";
-        if (transfer.claimed) return "CLAIMED";
-        if (transfer.cancelled) return "CANCELLED";
-        if (block.timestamp > transfer.expiryTime) return "EXPIRED";
-        return "PENDING";
+        if (transfer.sender == address(0)) return TransferStatus.NOT_FOUND;
+        if (transfer.claimed) return TransferStatus.CLAIMED;
+        if (transfer.cancelled) return TransferStatus.CANCELLED;
+        if (block.timestamp > transfer.expiryTime) return TransferStatus.EXPIRED;
+        return TransferStatus.PENDING;
     }
 }
