@@ -1,5 +1,7 @@
 # Aegis Transfer
 
+![Aegis Transfer Hero](assets/hero-image.jpg)
+
 [![Solidity](https://img.shields.io/badge/Solidity-^0.8.13-363636?style=flat-square&logo=solidity)](https://soliditylang.org/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)](https://reactjs.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-14-000000?style=flat-square&logo=next.js)](https://nextjs.org/)
