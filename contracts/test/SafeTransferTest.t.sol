@@ -324,17 +324,16 @@ contract SafeTransferTest is Test {
 
     function test_ReentrancyProtectionClaimTransfer() public {
         MaliciousRecipient malicious = new MaliciousRecipient(safeTransfer);
-        
+
         vm.prank(sender);
-        uint256 transferId = safeTransfer.createTransfer{value: transferAmount}(
-            address(malicious), address(0), 0, 0, ""
-        );
-        
+        uint256 transferId =
+            safeTransfer.createTransfer{value: transferAmount}(address(malicious), address(0), 0, 0, "");
+
         malicious.setTransferId(transferId);
-        
+
         vm.prank(address(malicious));
         safeTransfer.claimTransfer(transferId, "");
-        
+
         assertEq(malicious.attackCount(), 1);
     }
 
@@ -342,13 +341,11 @@ contract SafeTransferTest is Test {
         // Test that reentrancy protection works for cancel operations
         // The nonReentrant modifier prevents multiple entries to cancelTransfer
         vm.prank(sender);
-        uint256 transferId = safeTransfer.createTransfer{value: transferAmount}(
-            recipient, address(0), 0, 0, ""
-        );
-        
+        uint256 transferId = safeTransfer.createTransfer{value: transferAmount}(recipient, address(0), 0, 0, "");
+
         vm.prank(sender);
         safeTransfer.cancelTransfer(transferId);
-        
+
         // Verify transfer was cancelled successfully
         ISafeTransfer.Transfer memory transfer = safeTransfer.getTransfer(transferId);
         assertTrue(transfer.cancelled);
@@ -358,45 +355,45 @@ contract SafeTransferTest is Test {
         MaliciousRecipient malicious = new MaliciousRecipient(safeTransfer);
         address payer = address(0x5);
         uint256 invoiceAmount = 0.5 ether;
-        
+
         vm.deal(payer, 10 ether);
-        
+
         vm.prank(address(malicious));
         uint256 invoiceId = safeTransfer.createInvoice(payer, address(0), invoiceAmount, 7 days, "test");
-        
+
         malicious.setTransferId(invoiceId);
-        
+
         vm.prank(payer);
         safeTransfer.payInvoice{value: invoiceAmount}(invoiceId);
-        
+
         assertEq(malicious.attackCount(), 1);
     }
 
     function test_NonStandardERC20Transfer() public {
         NonStandardERC20 nonStandardToken = new NonStandardERC20();
         uint256 amount = 1000 * 10 ** 18;
-        
+
         nonStandardToken.mint(sender, amount * 10);
         vm.prank(sender);
         nonStandardToken.approve(address(safeTransfer), amount * 10);
-        
+
         vm.prank(sender);
         uint256 transferId = safeTransfer.createTransfer(recipient, address(nonStandardToken), amount, 0, "");
-        
+
         vm.prank(recipient);
         safeTransfer.claimTransfer(transferId, "");
-        
+
         assertEq(nonStandardToken.balanceOf(recipient), amount);
     }
 
     function test_FailingERC20TransferReverts() public {
         FailingERC20 failingToken = new FailingERC20();
         uint256 amount = 1000 * 10 ** 18;
-        
+
         failingToken.mint(sender, amount);
         vm.prank(sender);
         failingToken.approve(address(safeTransfer), amount);
-        
+
         vm.prank(sender);
         vm.expectRevert("SafeTransfer: transferFrom failed");
         safeTransfer.createTransfer(recipient, address(failingToken), amount, 0, "");
@@ -404,14 +401,12 @@ contract SafeTransferTest is Test {
 
     function test_ReentrancyProtectionBlocks() public {
         ReentrantAttacker attacker = new ReentrantAttacker(safeTransfer);
-        
+
         vm.prank(sender);
-        uint256 transferId = safeTransfer.createTransfer{value: transferAmount}(
-            address(attacker), address(0), 0, 0, ""
-        );
-        
+        uint256 transferId = safeTransfer.createTransfer{value: transferAmount}(address(attacker), address(0), 0, 0, "");
+
         attacker.setTransferId(transferId);
-        
+
         vm.prank(address(attacker));
         vm.expectRevert("Transfer failed");
         safeTransfer.claimTransfer(transferId, "");
@@ -423,19 +418,19 @@ contract MaliciousRecipient {
     uint256 public transferId;
     bool public shouldAttack = true;
     uint256 public attackCount = 0;
-    
+
     constructor(SafeTransfer _safeTransfer) {
         safeTransfer = _safeTransfer;
     }
-    
+
     receive() external payable {
         attackCount++;
     }
-    
+
     function setTransferId(uint256 _transferId) external {
         transferId = _transferId;
     }
-    
+
     function setAttackMode(bool _shouldAttack) external {
         shouldAttack = _shouldAttack;
     }
@@ -445,30 +440,30 @@ contract NonStandardERC20 {
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
     uint256 private _totalSupply;
-    
+
     function balanceOf(address account) external view returns (uint256) {
         return _balances[account];
     }
-    
+
     function allowance(address owner, address spender) external view returns (uint256) {
         return _allowances[owner][spender];
     }
-    
+
     function transfer(address to, uint256 amount) external {
         _balances[msg.sender] -= amount;
         _balances[to] += amount;
     }
-    
+
     function approve(address spender, uint256 amount) external {
         _allowances[msg.sender][spender] = amount;
     }
-    
+
     function transferFrom(address from, address to, uint256 amount) external {
         _allowances[from][msg.sender] -= amount;
         _balances[from] -= amount;
         _balances[to] += amount;
     }
-    
+
     function mint(address to, uint256 amount) external {
         _balances[to] += amount;
         _totalSupply += amount;
@@ -478,28 +473,28 @@ contract NonStandardERC20 {
 contract FailingERC20 {
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
-    
+
     function balanceOf(address account) external view returns (uint256) {
         return _balances[account];
     }
-    
+
     function transfer(address, uint256) external pure returns (bool) {
         return false;
     }
-    
+
     function transferFrom(address, address, uint256) external pure returns (bool) {
         return false;
     }
-    
+
     function approve(address spender, uint256 amount) external returns (bool) {
         _allowances[msg.sender][spender] = amount;
         return true;
     }
-    
+
     function allowance(address owner, address spender) external view returns (uint256) {
         return _allowances[owner][spender];
     }
-    
+
     function mint(address to, uint256 amount) external {
         _balances[to] += amount;
     }
@@ -508,15 +503,15 @@ contract FailingERC20 {
 contract ReentrantAttacker {
     SafeTransfer public safeTransfer;
     uint256 public transferId;
-    
+
     constructor(SafeTransfer _safeTransfer) {
         safeTransfer = _safeTransfer;
     }
-    
+
     receive() external payable {
         safeTransfer.claimTransfer(transferId, "");
     }
-    
+
     function setTransferId(uint256 _transferId) external {
         transferId = _transferId;
     }
@@ -525,15 +520,15 @@ contract ReentrantAttacker {
 contract ReentrantCanceller {
     SafeTransfer public safeTransfer;
     uint256 public transferId;
-    
+
     constructor(SafeTransfer _safeTransfer) {
         safeTransfer = _safeTransfer;
     }
-    
+
     receive() external payable {
         safeTransfer.cancelTransfer(transferId);
     }
-    
+
     function setTransferId(uint256 _transferId) external {
         transferId = _transferId;
     }
