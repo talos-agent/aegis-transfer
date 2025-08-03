@@ -20,12 +20,29 @@ contract MockERC20 is IERC20 {
         _decimals = decimals_;
     }
 
-    function name() external view returns (string memory) { return _name; }
-    function symbol() external view returns (string memory) { return _symbol; }
-    function decimals() external view returns (uint8) { return _decimals; }
-    function totalSupply() external view returns (uint256) { return _totalSupply; }
-    function balanceOf(address account) external view returns (uint256) { return _balances[account]; }
-    function allowance(address owner, address spender) external view returns (uint256) { return _allowances[owner][spender]; }
+    function name() external view returns (string memory) {
+        return _name;
+    }
+
+    function symbol() external view returns (string memory) {
+        return _symbol;
+    }
+
+    function decimals() external view returns (uint8) {
+        return _decimals;
+    }
+
+    function totalSupply() external view returns (uint256) {
+        return _totalSupply;
+    }
+
+    function balanceOf(address account) external view returns (uint256) {
+        return _balances[account];
+    }
+
+    function allowance(address owner, address spender) external view returns (uint256) {
+        return _allowances[owner][spender];
+    }
 
     function transfer(address to, uint256 amount) external returns (bool) {
         _balances[msg.sender] -= amount;
@@ -61,15 +78,15 @@ contract SafeTransferTest is Test {
     address public sender = address(0x1);
     address public recipient = address(0x2);
     uint256 public transferAmount = 1 ether;
-    uint256 public tokenAmount = 1000 * 10**18;
+    uint256 public tokenAmount = 1000 * 10 ** 18;
 
     function setUp() public {
         safeTransfer = new SafeTransfer();
         token = new MockERC20("Test Token", "TEST", 18);
-        
+
         vm.deal(sender, 10 ether);
         vm.deal(recipient, 1 ether);
-        
+
         token.mint(sender, tokenAmount * 10);
         vm.prank(sender);
         token.approve(address(safeTransfer), tokenAmount * 10);
@@ -77,13 +94,7 @@ contract SafeTransferTest is Test {
 
     function test_CreateTransfer() public {
         vm.prank(sender);
-        uint256 transferId = safeTransfer.createTransfer{value: transferAmount}(
-            recipient,
-            address(0),
-            0,
-            0,
-            ""
-        );
+        uint256 transferId = safeTransfer.createTransfer{value: transferAmount}(recipient, address(0), 0, 0, "");
 
         ISafeTransfer.Transfer memory transfer = safeTransfer.getTransfer(transferId);
         assertEq(transfer.sender, sender);
@@ -96,16 +107,10 @@ contract SafeTransferTest is Test {
 
     function test_ClaimTransfer() public {
         vm.prank(sender);
-        uint256 transferId = safeTransfer.createTransfer{value: transferAmount}(
-            recipient,
-            address(0),
-            0,
-            0,
-            ""
-        );
+        uint256 transferId = safeTransfer.createTransfer{value: transferAmount}(recipient, address(0), 0, 0, "");
 
         uint256 recipientBalanceBefore = recipient.balance;
-        
+
         vm.prank(recipient);
         safeTransfer.claimTransfer(transferId, "");
 
@@ -116,15 +121,9 @@ contract SafeTransferTest is Test {
 
     function test_ClaimTransferWithCode() public {
         string memory claimCode = "secret123";
-        
+
         vm.prank(sender);
-        uint256 transferId = safeTransfer.createTransfer{value: transferAmount}(
-            recipient,
-            address(0),
-            0,
-            0,
-            claimCode
-        );
+        uint256 transferId = safeTransfer.createTransfer{value: transferAmount}(recipient, address(0), 0, 0, claimCode);
 
         vm.prank(recipient);
         safeTransfer.claimTransfer(transferId, claimCode);
@@ -135,16 +134,10 @@ contract SafeTransferTest is Test {
 
     function test_CancelTransfer() public {
         vm.prank(sender);
-        uint256 transferId = safeTransfer.createTransfer{value: transferAmount}(
-            recipient,
-            address(0),
-            0,
-            0,
-            ""
-        );
+        uint256 transferId = safeTransfer.createTransfer{value: transferAmount}(recipient, address(0), 0, 0, "");
 
         uint256 senderBalanceBefore = sender.balance;
-        
+
         vm.prank(sender);
         safeTransfer.cancelTransfer(transferId);
 
@@ -155,13 +148,7 @@ contract SafeTransferTest is Test {
 
     function test_ExpiredTransfer() public {
         vm.prank(sender);
-        uint256 transferId = safeTransfer.createTransfer{value: transferAmount}(
-            recipient,
-            address(0),
-            0,
-            1 days,
-            ""
-        );
+        uint256 transferId = safeTransfer.createTransfer{value: transferAmount}(recipient, address(0), 0, 1 days, "");
 
         vm.warp(block.timestamp + 2 days);
 
@@ -178,15 +165,9 @@ contract SafeTransferTest is Test {
 
     function test_InvalidClaimCode() public {
         string memory claimCode = "secret123";
-        
+
         vm.prank(sender);
-        uint256 transferId = safeTransfer.createTransfer{value: transferAmount}(
-            recipient,
-            address(0),
-            0,
-            0,
-            claimCode
-        );
+        uint256 transferId = safeTransfer.createTransfer{value: transferAmount}(recipient, address(0), 0, 0, claimCode);
 
         vm.prank(recipient);
         vm.expectRevert(ISafeTransfer.InvalidClaimCode.selector);
@@ -195,13 +176,7 @@ contract SafeTransferTest is Test {
 
     function test_GetTransferStatus() public {
         vm.prank(sender);
-        uint256 transferId = safeTransfer.createTransfer{value: transferAmount}(
-            recipient,
-            address(0),
-            0,
-            0,
-            ""
-        );
+        uint256 transferId = safeTransfer.createTransfer{value: transferAmount}(recipient, address(0), 0, 0, "");
 
         ISafeTransfer.TransferStatus status = safeTransfer.getTransferStatus(transferId);
         assertEq(uint8(status), uint8(ISafeTransfer.TransferStatus.PENDING));
@@ -215,13 +190,7 @@ contract SafeTransferTest is Test {
 
     function test_CreateERC20Transfer() public {
         vm.prank(sender);
-        uint256 transferId = safeTransfer.createTransfer(
-            recipient,
-            address(token),
-            tokenAmount,
-            0,
-            ""
-        );
+        uint256 transferId = safeTransfer.createTransfer(recipient, address(token), tokenAmount, 0, "");
 
         ISafeTransfer.Transfer memory transfer = safeTransfer.getTransfer(transferId);
         assertEq(transfer.sender, sender);
@@ -234,16 +203,10 @@ contract SafeTransferTest is Test {
 
     function test_ClaimERC20Transfer() public {
         vm.prank(sender);
-        uint256 transferId = safeTransfer.createTransfer(
-            recipient,
-            address(token),
-            tokenAmount,
-            0,
-            ""
-        );
+        uint256 transferId = safeTransfer.createTransfer(recipient, address(token), tokenAmount, 0, "");
 
         uint256 recipientBalanceBefore = token.balanceOf(recipient);
-        
+
         vm.prank(recipient);
         safeTransfer.claimTransfer(transferId, "");
 
@@ -254,16 +217,10 @@ contract SafeTransferTest is Test {
 
     function test_CancelERC20Transfer() public {
         vm.prank(sender);
-        uint256 transferId = safeTransfer.createTransfer(
-            recipient,
-            address(token),
-            tokenAmount,
-            0,
-            ""
-        );
+        uint256 transferId = safeTransfer.createTransfer(recipient, address(token), tokenAmount, 0, "");
 
         uint256 senderBalanceBefore = token.balanceOf(sender);
-        
+
         vm.prank(sender);
         safeTransfer.cancelTransfer(transferId);
 

@@ -7,7 +7,7 @@ import {DeBridgeIntegration} from "../src/DeBridgeIntegration.sol";
 
 contract DeBridgeLibTest is Test {
     using DeBridgeLib for *;
-    
+
     DeBridgeIntegration public deBridgeIntegration;
 
     function setUp() public {
@@ -42,7 +42,7 @@ contract DeBridgeLibTest is Test {
         } catch {
             // Expected to revert on unsupported chains
         }
-        
+
         try deBridgeIntegration.getCurrentDlnDestination() returns (address destination) {
             assertTrue(destination != address(0));
         } catch {

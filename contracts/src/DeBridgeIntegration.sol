@@ -48,22 +48,10 @@ contract DeBridgeIntegration {
         address receiver
     ) external payable returns (bytes32 orderId) {
         // Call the library function
-        orderId = DeBridgeLib.createBridgeOrder(
-            sourceToken,
-            destinationToken,
-            amount,
-            destinationChain,
-            receiver
-        );
+        orderId = DeBridgeLib.createBridgeOrder(sourceToken, destinationToken, amount, destinationChain, receiver);
 
         emit BridgeOrderCreated(
-            orderId,
-            msg.sender,
-            block.chainid,
-            destinationChain,
-            sourceToken,
-            destinationToken,
-            amount
+            orderId, msg.sender, block.chainid, destinationChain, sourceToken, destinationToken, amount
         );
     }
 
