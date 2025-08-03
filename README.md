@@ -1,4 +1,4 @@
-# Aegis Transfer 🛡️
+# Aegis Transfer
 
 [![Solidity](https://img.shields.io/badge/Solidity-^0.8.13-363636?style=flat-square&logo=solidity)](https://soliditylang.org/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)](https://reactjs.org/)
@@ -9,45 +9,45 @@
 
 **Created by [Talos](https://github.com/talos-agent)** - A revolutionary decentralized application that eliminates the stress of cryptocurrency payments by enabling **secure, cancellable transfers** and **invoice functionality**. Say goodbye to the anxiety of sending crypto to wrong addresses or waiting for payment confirmations!
 
-> 🎯 **The Problem**: Traditional crypto payments are irreversible and stressful - one wrong address and your funds are gone forever.
+> **The Problem**: Traditional crypto payments are irreversible and stressful - one wrong address and your funds are gone forever.
 > 
-> ✅ **The Solution**: Aegis Transfer requires recipient acceptance and allows cancellation, making crypto payments as safe as traditional banking.
+> **The Solution**: Aegis Transfer requires recipient acceptance and allows cancellation, making crypto payments as safe as traditional banking.
 
-## 📋 Table of Contents
+## Table of Contents
 
-- [✨ Key Features](#-key-features)
-- [🎯 How It Works](#-how-it-works)
-- [💰 Invoice System](#-invoice-system)
-- [🏗️ Architecture](#️-architecture)
-- [🚀 Getting Started](#-getting-started)
-- [📁 Project Structure](#-project-structure)
-- [🔧 Development](#-development)
-- [🌐 Live Demo](#-live-demo)
-- [🤝 Contributing](#-contributing)
+- [Key Features](#key-features)
+- [How It Works](#how-it-works)
+- [Invoice System](#invoice-system)
+- [Architecture](#architecture)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Development](#development)
+- [Live Demo](#live-demo)
+- [Contributing](#contributing)
 
-## ✨ Key Features
+## Key Features
 
-### 🔒 **Secure Cancellable Transfers**
+### **Secure Cancellable Transfers**
 - Send funds that can be **cancelled if not claimed** within a timeframe
 - **Eliminate address errors** - if recipient doesn't claim, you get your money back
 - **Time-based expiry** - transfers automatically become cancellable after set duration
 - **Optional claim codes** for additional security on sensitive transfers
 
-### 📄 **Invoice System** 
+### **Invoice System** 
 - **Request payments** from specific addresses with detailed descriptions
 - **Professional invoicing** for freelancers, businesses, and service providers
 - **Automatic payment tracking** and status management
 - **Expiry dates** for invoice validity
 
-### 🎛️ **Complete Transfer Management**
+### **Complete Transfer Management**
 - **Dashboard view** of all pending incoming and outgoing transfers
 - **Real-time status** tracking (pending, claimed, cancelled, expired)
 - **Multi-token support** - ETH and ERC20 tokens
 - **Gas-optimized** smart contracts built with Foundry
 
-## 🎯 How It Works
+## How It Works
 
-### For Senders (Much Less Stress! 😌)
+### For Senders (Much Less Stress!)
 
 1. **Create Transfer**: Send funds to a recipient address with optional expiry time
 2. **Add Security**: Optionally include a claim code for sensitive transfers  
@@ -65,7 +65,7 @@ createTransfer(
 )
 ```
 
-### For Recipients (Simple & Secure! 🔐)
+### For Recipients (Simple & Secure!)
 
 1. **Receive Notification**: Get notified of incoming transfers
 2. **Review Details**: Check amount, sender, and any requirements
@@ -77,7 +77,7 @@ createTransfer(
 claimTransfer(transferId, "secret123")
 ```
 
-## 💰 Invoice System
+## Invoice System
 
 Perfect for freelancers, businesses, and anyone who needs to request payments professionally!
 
@@ -107,7 +107,7 @@ payInvoice(invoiceId) // with ETH value
 - **Recurring Payments**: Set up regular payment requests
 - **Escrow Alternative**: Secure payment requests with expiry dates
 
-## 🏗️ Architecture
+## Architecture
 
 ### Smart Contracts (Foundry + Solidity)
 - **SafeTransfer.sol**: Core contract implementing cancellable transfers and invoices
@@ -136,7 +136,7 @@ Frontend Layer
 └── Transaction History
 ```
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js 18+ and npm
@@ -177,29 +177,29 @@ NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=your_project_id
 NEXT_PUBLIC_ALCHEMY_API_KEY=your_alchemy_key
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 aegis-transfer/
-├── 📄 README.md                    # This comprehensive guide
-├── 📁 contracts/                   # Smart contract system
-│   ├── 📄 src/SafeTransfer.sol    # Core transfer logic
-│   ├── 📄 src/ISafeTransfer.sol   # Contract interface
-│   ├── 📁 test/                   # Comprehensive test suite
-│   ├── 📁 script/                 # Deployment scripts
-│   └── 📄 foundry.toml            # Foundry configuration
-├── 📁 frontend/                    # Next.js web application
-│   ├── 📁 src/                    # React components and logic
-│   │   ├── 📁 components/         # UI components
-│   │   ├── 📁 lib/                # Web3 integration
-│   │   └── 📁 app/                # Next.js app router
-│   ├── 📁 public/                 # Static assets
-│   └── 📄 package.json            # Dependencies
-└── 📁 .github/workflows/          # CI/CD automation
-    └── 📄 deploy-pages.yml        # GitHub Pages deployment
+├── README.md                    # This comprehensive guide
+├── contracts/                   # Smart contract system
+│   ├── src/SafeTransfer.sol    # Core transfer logic
+│   ├── src/ISafeTransfer.sol   # Contract interface
+│   ├── test/                   # Comprehensive test suite
+│   ├── script/                 # Deployment scripts
+│   └── foundry.toml            # Foundry configuration
+├── frontend/                    # Next.js web application
+│   ├── src/                    # React components and logic
+│   │   ├── components/         # UI components
+│   │   ├── lib/                # Web3 integration
+│   │   └── app/                # Next.js app router
+│   ├── public/                 # Static assets
+│   └── package.json            # Dependencies
+└── .github/workflows/          # CI/CD automation
+    └── deploy-pages.yml        # GitHub Pages deployment
 ```
 
-## 🔧 Development
+## Development
 
 ### Smart Contract Development
 
@@ -242,13 +242,13 @@ The project includes comprehensive testing:
 - **Edge Cases**: Boundary conditions and error scenarios
 - **Gas Optimization**: Gas usage analysis and optimization
 
-## 🌐 Live Demo
+## Live Demo
 
-🚀 **Try Aegis Transfer**: [https://talos-agent.github.io/aegis-transfer/](https://talos-agent.github.io/aegis-transfer/)
+**Try Aegis Transfer**: [https://talos-agent.github.io/aegis-transfer/](https://talos-agent.github.io/aegis-transfer/)
 
 Experience the future of secure crypto payments with our live deployment on GitHub Pages!
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Here's how to get started:
 
@@ -266,11 +266,11 @@ We welcome contributions! Here's how to get started:
 - Update documentation as needed
 - Ensure all CI checks pass
 
-## 📜 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **Talos** - Creator and lead developer
 - **Foundry** - Excellent smart contract development toolkit
@@ -279,4 +279,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ by [Talos](https://github.com/talos-agent)** | **Making crypto payments stress-free, one transfer at a time** 🛡️
+**Built with ❤️ by [Talos](https://github.com/talos-agent)** | **Making crypto payments stress-free, one transfer at a time**
