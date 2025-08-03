@@ -6,6 +6,7 @@ import { ConnectWallet } from '@/components/ConnectWallet'
 import { CreateTransfer } from '@/components/CreateTransfer'
 import { TransferList } from '@/components/TransferList'
 import { ClaimTransfer } from '@/components/ClaimTransfer'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 export default function Home() {
   const { isConnected } = useAccount()
@@ -13,12 +14,19 @@ export default function Home() {
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Aegis</h1>
-          <p className="text-gray-600 mb-8">
-            Send cryptocurrency transfers that can be cancelled if sent to the wrong address
-          </p>
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-background to-primary-100 dark:from-background dark:via-muted dark:to-background flex items-center justify-center p-4 animate-fade-in">
+        <div className="bg-card border border-border rounded-3xl shadow-2xl p-8 max-w-md w-full text-center backdrop-blur-sm animate-slide-up relative">
+          <div className="absolute top-4 right-4">
+            <ThemeToggle />
+          </div>
+          <div className="mb-6">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent mb-4">
+              Aegis
+            </h1>
+            <p className="text-muted-foreground text-lg leading-relaxed">
+              Send cryptocurrency transfers that can be cancelled if sent to the wrong address
+            </p>
+          </div>
           <ConnectWallet />
         </div>
       </div>
@@ -26,45 +34,50 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-4xl mx-auto">
-        <header className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Aegis</h1>
-          <p className="text-gray-600">Secure, cancellable cryptocurrency transfers</p>
-          <div className="mt-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-background to-primary-100 dark:from-background dark:via-muted dark:to-background p-4 animate-fade-in">
+      <div className="max-w-5xl mx-auto">
+        <header className="text-center mb-8 relative">
+          <div className="absolute top-0 right-0">
+            <ThemeToggle />
+          </div>
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent mb-3">
+            Aegis
+          </h1>
+          <p className="text-muted-foreground text-xl">Secure, cancellable cryptocurrency transfers</p>
+          <div className="mt-6">
             <ConnectWallet />
           </div>
         </header>
 
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          <div className="border-b border-gray-200">
+        <div className="bg-card border border-border rounded-3xl shadow-2xl overflow-hidden backdrop-blur-sm animate-slide-up">
+          <div className="border-b border-border bg-secondary/50">
             <nav className="flex">
               <button
                 onClick={() => setActiveTab('send')}
-                className={`flex-1 py-4 px-6 text-center font-medium ${
+                className={`flex-1 py-4 px-6 text-center font-semibold transition-all duration-200 ${
                   activeTab === 'send'
-                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'text-primary bg-background border-b-2 border-primary shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
                 }`}
               >
                 Send Transfer
               </button>
               <button
                 onClick={() => setActiveTab('receive')}
-                className={`flex-1 py-4 px-6 text-center font-medium ${
+                className={`flex-1 py-4 px-6 text-center font-semibold transition-all duration-200 ${
                   activeTab === 'receive'
-                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'text-primary bg-background border-b-2 border-primary shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
                 }`}
               >
                 My Transfers
               </button>
               <button
                 onClick={() => setActiveTab('claim')}
-                className={`flex-1 py-4 px-6 text-center font-medium ${
+                className={`flex-1 py-4 px-6 text-center font-semibold transition-all duration-200 ${
                   activeTab === 'claim'
-                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'text-primary bg-background border-b-2 border-primary shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
                 }`}
               >
                 Claim Transfer
@@ -72,7 +85,7 @@ export default function Home() {
             </nav>
           </div>
 
-          <div className="p-6">
+          <div className="p-8">
             {activeTab === 'send' && <CreateTransfer />}
             {activeTab === 'receive' && <TransferList />}
             {activeTab === 'claim' && <ClaimTransfer />}

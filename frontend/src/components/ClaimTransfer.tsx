@@ -81,12 +81,12 @@ export function ClaimTransfer() {
         <div className="text-green-600 text-xl font-semibold mb-4">
           Transfer Claimed Successfully!
         </div>
-        <p className="text-gray-600 mb-4">
+        <p className="text-muted-foreground mb-4">
           The funds have been transferred to your wallet.
         </p>
         <button
           onClick={() => window.location.reload()}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-6 py-3 bg-gradient-to-r from-primary to-primary-700 text-primary-foreground rounded-xl hover:from-primary-600 hover:to-primary-800 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
         >
           Claim Another Transfer
         </button>
@@ -96,12 +96,12 @@ export function ClaimTransfer() {
 
   return (
     <div className="max-w-md mx-auto">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Claim Transfer</h2>
+      <h2 className="text-2xl font-bold text-foreground mb-6">Claim Transfer</h2>
       <NetworkWarning />
       
-      <div className="space-y-4 mb-6">
+      <div className="space-y-6 mb-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-foreground mb-2">
             Transfer ID
           </label>
           <div className="flex gap-2">
@@ -110,11 +110,11 @@ export function ClaimTransfer() {
               value={transferId}
               onChange={(e) => setTransferId(e.target.value)}
               placeholder="Enter transfer ID"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 px-4 py-3 border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent bg-input text-foreground transition-all duration-200 shadow-sm"
             />
             <button
               onClick={handleLookupTransfer}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              className="px-4 py-3 bg-secondary text-secondary-foreground rounded-xl hover:bg-muted transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105"
             >
               Lookup
             </button>
@@ -122,15 +122,15 @@ export function ClaimTransfer() {
         </div>
 
         {transfer && (
-          <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-            <h3 className="font-medium mb-2">Transfer Details</h3>
-            <div className="space-y-1 text-sm">
-              <div>Amount: <span className="font-semibold">{formatAmount(transfer.amount, transfer.tokenAddress)}</span></div>
-              <div>From: <span className="font-mono">{transfer.sender.slice(0, 6)}...{transfer.sender.slice(-4)}</span></div>
-              <div>Status: <span className="font-semibold">{transferStatus !== undefined ? TRANSFER_STATUS_LABELS[transferStatus] : 'Loading...'}</span></div>
-              <div>Expires: {new Date(Number(transfer.expiryTime) * 1000).toLocaleString()}</div>
+          <div className="border border-border rounded-2xl p-6 bg-card shadow-lg backdrop-blur-sm">
+            <h3 className="font-semibold text-foreground mb-4">Transfer Details</h3>
+            <div className="space-y-2 text-sm">
+              <div>Amount: <span className="font-bold text-foreground">{formatAmount(transfer.amount, transfer.tokenAddress)}</span></div>
+              <div>From: <span className="font-mono bg-secondary px-2 py-1 rounded-lg text-secondary-foreground">{transfer.sender.slice(0, 6)}...{transfer.sender.slice(-4)}</span></div>
+              <div>Status: <span className="font-semibold text-foreground">{transferStatus !== undefined ? TRANSFER_STATUS_LABELS[transferStatus] : 'Loading...'}</span></div>
+              <div className="text-muted-foreground">Expires: {new Date(Number(transfer.expiryTime) * 1000).toLocaleString()}</div>
               {transfer.claimCode !== '0x0000000000000000000000000000000000000000000000000000000000000000' && (
-                <div className="text-blue-600">🔒 Requires claim code</div>
+                <div className="text-primary flex items-center gap-1">🔒 Requires claim code</div>
               )}
             </div>
           </div>
@@ -138,10 +138,10 @@ export function ClaimTransfer() {
       </div>
 
       {transfer && transferStatus === TransferStatus.PENDING && (
-        <form onSubmit={handleClaimTransfer} className="space-y-4">
+        <form onSubmit={handleClaimTransfer} className="space-y-6">
           {transfer.claimCode !== '0x0000000000000000000000000000000000000000000000000000000000000000' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Claim Code
               </label>
               <input
@@ -149,7 +149,7 @@ export function ClaimTransfer() {
                 value={claimCode}
                 onChange={(e) => setClaimCode(e.target.value)}
                 placeholder="Enter the claim code"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent bg-input text-foreground transition-all duration-200 shadow-sm"
                 required
               />
             </div>
@@ -158,7 +158,7 @@ export function ClaimTransfer() {
           <button
             type="submit"
             disabled={isPending || isConfirming || !transferId || !isNetworkSupported}
-            className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+            className="w-full py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:bg-muted disabled:cursor-not-allowed transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
           >
             {!isNetworkSupported ? 'Switch to Supported Network' : isPending || isConfirming ? 'Claiming Transfer...' : 'Claim Transfer'}
           </button>
@@ -167,8 +167,8 @@ export function ClaimTransfer() {
 
       {transfer && transferStatus !== TransferStatus.PENDING && transferStatus !== undefined && (
         <div className="text-center py-4">
-          <p className="text-gray-600">
-            This transfer cannot be claimed. Status: <span className="font-semibold">{TRANSFER_STATUS_LABELS[transferStatus]}</span>
+          <p className="text-muted-foreground">
+            This transfer cannot be claimed. Status: <span className="font-semibold text-foreground">{TRANSFER_STATUS_LABELS[transferStatus]}</span>
           </p>
         </div>
       )}
