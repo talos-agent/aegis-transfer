@@ -228,4 +228,97 @@ contract SafeTransferTest is Test {
         assertEq(transfer.cancelled, true);
         assertEq(token.balanceOf(sender), senderBalanceBefore + tokenAmount);
     }
+
+    function test_CreateInvoice() public {
+        address payer = address(0x3);
+        uint256 invoiceAmount = 0.5 ether;
+        string memory description = "Payment for services";
+
+        vm.prank(recipient);
+        uint256 invoiceId = safeTransfer.createInvoice(payer, address(0), invoiceAmount, 7 days, description);
+
+        ISafeTransfer.Transfer memory invoice = safeTransfer.getTransfer(invoiceId);
+        assertEq(invoice.sender, payer);
+        assertEq(invoice.recipient, recipient);
+        assertEq(invoice.tokenAddress, address(0));
+        assertEq(invoice.amount, invoiceAmount);
+        assertEq(invoice.claimed, false);
+        assertEq(invoice.cancelled, false);
+        
+        assertTrue(safeTransfer.getIsInvoice(invoiceId));
+        assertEq(safeTransfer.getInvoiceDescription(invoiceId), description);
+    }
+
+    function test_PayInvoice() public {
+        address payer = address(0x3);
+        uint256 invoiceAmount = 0.5 ether;
+        string memory description = "Payment for services";
+
+        vm.deal(payer, 10 ether);
+
+        vm.prank(recipient);
+        uint256 invoiceId = safeTransfer.createInvoice(payer, address(0), invoiceAmount, 7 days, description);
+
+        uint256 recipientBalanceBefore = recipient.balance;
+
+        vm.prank(payer);
+        safeTransfer.payInvoice{value: invoiceAmount}(invoiceId);
+
+        ISafeTransfer.Transfer memory invoice = safeTransfer.getTransfer(invoiceId);
+        assertEq(invoice.claimed, true);
+        assertEq(recipient.balance, recipientBalanceBefore + invoiceAmount);
+    }
+
+    function test_PayERC20Invoice() public {
+        address payer = address(0x3);
+        uint256 invoiceAmount = 500 * 10 ** 18;
+        string memory description = "Payment for services";
+
+        token.mint(payer, invoiceAmount * 2);
+        vm.prank(payer);
+        token.approve(address(safeTransfer), invoiceAmount * 2);
+
+        vm.prank(recipient);
+        uint256 invoiceId = safeTransfer.createInvoice(payer, address(token), invoiceAmount, 7 days, description);
+
+        uint256 recipientBalanceBefore = token.balanceOf(recipient);
+
+        vm.prank(payer);
+        safeTransfer.payInvoice(invoiceId);
+
+        ISafeTransfer.Transfer memory invoice = safeTransfer.getTransfer(invoiceId);
+        assertEq(invoice.claimed, true);
+        assertEq(token.balanceOf(recipient), recipientBalanceBefore + invoiceAmount);
+    }
+
+    function test_CannotPayInvoiceAsWrongPayer() public {
+        address payer = address(0x3);
+        address wrongPayer = address(0x4);
+        uint256 invoiceAmount = 0.5 ether;
+
+        vm.deal(wrongPayer, 10 ether);
+
+        vm.prank(recipient);
+        uint256 invoiceId = safeTransfer.createInvoice(payer, address(0), invoiceAmount, 7 days, "test");
+
+        vm.prank(wrongPayer);
+        vm.expectRevert(ISafeTransfer.NotDesignatedPayer.selector);
+        safeTransfer.payInvoice{value: invoiceAmount}(invoiceId);
+    }
+
+    function test_CannotPayExpiredInvoice() public {
+        address payer = address(0x3);
+        uint256 invoiceAmount = 0.5 ether;
+
+        vm.deal(payer, 10 ether);
+
+        vm.prank(recipient);
+        uint256 invoiceId = safeTransfer.createInvoice(payer, address(0), invoiceAmount, 1 days, "test");
+
+        vm.warp(block.timestamp + 2 days);
+
+        vm.prank(payer);
+        vm.expectRevert(ISafeTransfer.TransferExpired.selector);
+        safeTransfer.payInvoice{value: invoiceAmount}(invoiceId);
+    }
 }

@@ -103,4 +103,45 @@ interface ISafeTransfer {
 
     /// @notice Thrown when attempting to cancel non-expired transfer
     error TransferNotExpired();
+
+    /// @notice Thrown when invoice is not found
+    error InvoiceNotFound();
+
+    /// @notice Thrown when caller is not the designated payer for an invoice
+    error NotDesignatedPayer();
+
+    /// @notice Thrown when invoice has already been paid
+    error InvoiceAlreadyPaid();
+
+    /// @notice Emitted when a new invoice is created
+    /// @param invoiceId Unique identifier for the invoice
+    /// @param recipient Address that created the invoice (will receive payment)
+    /// @param payer Address that should pay the invoice
+    /// @param tokenAddress Token being requested (0x0 for ETH)
+    /// @param amount Amount being requested
+    /// @param expiryTime When the invoice expires
+    /// @param description Invoice description
+    event InvoiceCreated(
+        uint256 indexed invoiceId,
+        address indexed recipient,
+        address indexed payer,
+        address tokenAddress,
+        uint256 amount,
+        uint256 expiryTime,
+        string description
+    );
+
+    /// @notice Emitted when an invoice is paid
+    /// @param invoiceId The invoice that was paid
+    /// @param payer Address that paid the invoice
+    /// @param recipient Address that received the payment
+    /// @param tokenAddress Token that was paid
+    /// @param amount Amount that was paid
+    event InvoicePaid(
+        uint256 indexed invoiceId,
+        address indexed payer,
+        address indexed recipient,
+        address tokenAddress,
+        uint256 amount
+    );
 }

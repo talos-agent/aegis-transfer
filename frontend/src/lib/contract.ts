@@ -105,6 +105,64 @@ export const SAFE_TRANSFER_ABI = [
       {"name": "tokenAddress", "type": "address", "indexed": true},
       {"name": "amount", "type": "uint256", "indexed": false}
     ]
+  },
+  {
+    "type": "function",
+    "name": "createInvoice",
+    "inputs": [
+      {"name": "_payer", "type": "address"},
+      {"name": "_tokenAddress", "type": "address"},
+      {"name": "_amount", "type": "uint256"},
+      {"name": "_expiryDuration", "type": "uint256"},
+      {"name": "_description", "type": "string"}
+    ],
+    "outputs": [{"name": "", "type": "uint256"}],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "payInvoice",
+    "inputs": [{"name": "_invoiceId", "type": "uint256"}],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "getInvoiceDescription",
+    "inputs": [{"name": "_invoiceId", "type": "uint256"}],
+    "outputs": [{"name": "", "type": "string"}],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getIsInvoice",
+    "inputs": [{"name": "_transferId", "type": "uint256"}],
+    "outputs": [{"name": "", "type": "bool"}],
+    "stateMutability": "view"
+  },
+  {
+    "type": "event",
+    "name": "InvoiceCreated",
+    "inputs": [
+      {"name": "invoiceId", "type": "uint256", "indexed": true},
+      {"name": "recipient", "type": "address", "indexed": true},
+      {"name": "payer", "type": "address", "indexed": true},
+      {"name": "tokenAddress", "type": "address", "indexed": true},
+      {"name": "amount", "type": "uint256", "indexed": false},
+      {"name": "expiryTime", "type": "uint256", "indexed": false},
+      {"name": "description", "type": "string", "indexed": false}
+    ]
+  },
+  {
+    "type": "event",
+    "name": "InvoicePaid",
+    "inputs": [
+      {"name": "invoiceId", "type": "uint256", "indexed": true},
+      {"name": "payer", "type": "address", "indexed": true},
+      {"name": "recipient", "type": "address", "indexed": true},
+      {"name": "tokenAddress", "type": "address", "indexed": true},
+      {"name": "amount", "type": "uint256", "indexed": false}
+    ]
   }
 ] as const
 
