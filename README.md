@@ -2,6 +2,8 @@
 
 A decentralized application that enables users to send transferable funds that can be cancelled if not accepted within a timeframe, preventing loss of funds due to incorrect addresses.
 
+> **Note**: This implementation provides a secure alternative to traditional irreversible cryptocurrency transfers.
+
 ## Features
 
 - **Cancellable Transfers**: Send funds that can be cancelled if sent to wrong address
