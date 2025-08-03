@@ -10,6 +10,11 @@ import {ISafeTransfer} from "./ISafeTransfer.sol";
  * @dev Implements ISafeTransfer interface for clean separation of concerns
  */
 contract SafeTransfer is ISafeTransfer {
+    /// @notice Reentrancy guard status
+    uint256 private constant _NOT_ENTERED = 1;
+    uint256 private constant _ENTERED = 2;
+    uint256 private _status;
+
     /// @notice Mapping from transfer ID to transfer details
     mapping(uint256 => Transfer) public transfers;
 
@@ -30,6 +35,18 @@ contract SafeTransfer is ISafeTransfer {
 
     /// @notice Default expiry duration when none is specified (7 days)
     uint256 public constant DEFAULT_EXPIRY_DURATION = 7 days;
+
+    constructor() {
+        _status = _NOT_ENTERED;
+    }
+
+    /// @notice Prevents reentrancy attacks
+    modifier nonReentrant() {
+        require(_status != _ENTERED, "ReentrancyGuard: reentrant call");
+        _status = _ENTERED;
+        _;
+        _status = _NOT_ENTERED;
+    }
 
     /**
      * @notice Creates a new transfer that can be claimed by the recipient
@@ -61,7 +78,7 @@ contract SafeTransfer is ISafeTransfer {
             if (msg.value != 0) revert InsufficientBalance();
             transferAmount = _amount;
 
-            IERC20(_tokenAddress).transferFrom(msg.sender, address(this), _amount);
+            _safeTransferFrom(_tokenAddress, msg.sender, address(this), _amount);
         }
 
         // Generate unique transfer ID and calculate expiry time
@@ -100,7 +117,7 @@ contract SafeTransfer is ISafeTransfer {
      * @param _claimCode Claim code if required (empty string if none)
      * @custom:security Only the designated recipient can claim the transfer
      */
-    function claimTransfer(uint256 _transferId, string memory _claimCode) external {
+    function claimTransfer(uint256 _transferId, string memory _claimCode) external nonReentrant {
         Transfer storage transfer = transfers[_transferId];
 
         // Validate transfer exists and caller is authorized
@@ -127,7 +144,7 @@ contract SafeTransfer is ISafeTransfer {
             require(success, "Transfer failed");
         } else {
             // Transfer ERC20 tokens
-            IERC20(transfer.tokenAddress).transfer(msg.sender, transfer.amount);
+            _safeTransfer(transfer.tokenAddress, msg.sender, transfer.amount);
         }
 
         emit TransferClaimed(_transferId, msg.sender, transfer.tokenAddress, transfer.amount);
@@ -139,7 +156,7 @@ contract SafeTransfer is ISafeTransfer {
      * @param _transferId Unique identifier of the transfer to cancel
      * @custom:security Only the sender can cancel their own transfers
      */
-    function cancelTransfer(uint256 _transferId) external {
+    function cancelTransfer(uint256 _transferId) external nonReentrant {
         Transfer storage transfer = transfers[_transferId];
 
         // Validate transfer exists and caller is authorized
@@ -158,7 +175,7 @@ contract SafeTransfer is ISafeTransfer {
             require(success, "Refund failed");
         } else {
             // Refund ERC20 tokens
-            IERC20(transfer.tokenAddress).transfer(msg.sender, transfer.amount);
+            _safeTransfer(transfer.tokenAddress, msg.sender, transfer.amount);
         }
 
         emit TransferCancelled(_transferId, msg.sender, transfer.tokenAddress, transfer.amount);
@@ -267,7 +284,7 @@ contract SafeTransfer is ISafeTransfer {
      * @notice Pays an existing invoice
      * @param _invoiceId Unique identifier of the invoice to pay
      */
-    function payInvoice(uint256 _invoiceId) external payable {
+    function payInvoice(uint256 _invoiceId) external payable nonReentrant {
         Transfer storage invoice = transfers[_invoiceId];
 
         if (invoice.sender == address(0)) revert InvoiceNotFound();
@@ -285,7 +302,7 @@ contract SafeTransfer is ISafeTransfer {
             require(success, "Payment failed");
         } else {
             if (msg.value != 0) revert InsufficientBalance();
-            IERC20(invoice.tokenAddress).transferFrom(msg.sender, invoice.recipient, invoice.amount);
+            _safeTransferFrom(invoice.tokenAddress, msg.sender, invoice.recipient, invoice.amount);
         }
 
         emit InvoicePaid(_invoiceId, msg.sender, invoice.recipient, invoice.tokenAddress, invoice.amount);
@@ -307,5 +324,18 @@ contract SafeTransfer is ISafeTransfer {
      */
     function getIsInvoice(uint256 _transferId) external view returns (bool) {
         return isInvoice[_transferId];
+    }
+
+    /// @notice Safely transfers ERC20 tokens
+    function _safeTransfer(address token, address to, uint256 amount) internal {
+        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(IERC20.transfer.selector, to, amount));
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "SafeTransfer: transfer failed");
+    }
+
+    /// @notice Safely transfers ERC20 tokens from one address to another
+    function _safeTransferFrom(address token, address from, address to, uint256 amount) internal {
+        (bool success, bytes memory data) =
+            token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, amount));
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "SafeTransfer: transferFrom failed");
     }
 }
