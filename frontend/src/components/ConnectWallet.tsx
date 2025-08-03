@@ -37,7 +37,7 @@ export function ConnectWallet() {
           
           <button
             onClick={() => open({ view: 'Account' })}
-            className="px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg transform hover:scale-105"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg transform hover:scale-105"
           >
             Account
           </button>
