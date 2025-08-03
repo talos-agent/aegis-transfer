@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
 import {SafeTransfer} from "../src/SafeTransfer.sol";
+import {ISafeTransfer} from "../src/ISafeTransfer.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 
 contract MockERC20 is IERC20 {
@@ -84,7 +85,7 @@ contract SafeTransferTest is Test {
             ""
         );
 
-        SafeTransfer.Transfer memory transfer = safeTransfer.getTransfer(transferId);
+        ISafeTransfer.Transfer memory transfer = safeTransfer.getTransfer(transferId);
         assertEq(transfer.sender, sender);
         assertEq(transfer.recipient, recipient);
         assertEq(transfer.tokenAddress, address(0));
@@ -108,7 +109,7 @@ contract SafeTransferTest is Test {
         vm.prank(recipient);
         safeTransfer.claimTransfer(transferId, "");
 
-        SafeTransfer.Transfer memory transfer = safeTransfer.getTransfer(transferId);
+        ISafeTransfer.Transfer memory transfer = safeTransfer.getTransfer(transferId);
         assertEq(transfer.claimed, true);
         assertEq(recipient.balance, recipientBalanceBefore + transferAmount);
     }
@@ -128,7 +129,7 @@ contract SafeTransferTest is Test {
         vm.prank(recipient);
         safeTransfer.claimTransfer(transferId, claimCode);
 
-        SafeTransfer.Transfer memory transfer = safeTransfer.getTransfer(transferId);
+        ISafeTransfer.Transfer memory transfer = safeTransfer.getTransfer(transferId);
         assertEq(transfer.claimed, true);
     }
 
@@ -147,7 +148,7 @@ contract SafeTransferTest is Test {
         vm.prank(sender);
         safeTransfer.cancelTransfer(transferId);
 
-        SafeTransfer.Transfer memory transfer = safeTransfer.getTransfer(transferId);
+        ISafeTransfer.Transfer memory transfer = safeTransfer.getTransfer(transferId);
         assertEq(transfer.cancelled, true);
         assertEq(sender.balance, senderBalanceBefore + transferAmount);
     }
@@ -165,13 +166,13 @@ contract SafeTransferTest is Test {
         vm.warp(block.timestamp + 2 days);
 
         vm.prank(recipient);
-        vm.expectRevert(SafeTransfer.TransferExpired.selector);
+        vm.expectRevert(ISafeTransfer.TransferExpired.selector);
         safeTransfer.claimTransfer(transferId, "");
 
         vm.prank(sender);
         safeTransfer.cancelTransfer(transferId);
 
-        SafeTransfer.Transfer memory transfer = safeTransfer.getTransfer(transferId);
+        ISafeTransfer.Transfer memory transfer = safeTransfer.getTransfer(transferId);
         assertEq(transfer.cancelled, true);
     }
 
@@ -188,7 +189,7 @@ contract SafeTransferTest is Test {
         );
 
         vm.prank(recipient);
-        vm.expectRevert(SafeTransfer.InvalidClaimCode.selector);
+        vm.expectRevert(ISafeTransfer.InvalidClaimCode.selector);
         safeTransfer.claimTransfer(transferId, "wrongcode");
     }
 
@@ -202,14 +203,14 @@ contract SafeTransferTest is Test {
             ""
         );
 
-        SafeTransfer.TransferStatus status = safeTransfer.getTransferStatus(transferId);
-        assertEq(uint8(status), uint8(SafeTransfer.TransferStatus.PENDING));
+        ISafeTransfer.TransferStatus status = safeTransfer.getTransferStatus(transferId);
+        assertEq(uint8(status), uint8(ISafeTransfer.TransferStatus.PENDING));
 
         vm.prank(recipient);
         safeTransfer.claimTransfer(transferId, "");
 
         status = safeTransfer.getTransferStatus(transferId);
-        assertEq(uint8(status), uint8(SafeTransfer.TransferStatus.CLAIMED));
+        assertEq(uint8(status), uint8(ISafeTransfer.TransferStatus.CLAIMED));
     }
 
     function test_CreateERC20Transfer() public {
@@ -222,7 +223,7 @@ contract SafeTransferTest is Test {
             ""
         );
 
-        SafeTransfer.Transfer memory transfer = safeTransfer.getTransfer(transferId);
+        ISafeTransfer.Transfer memory transfer = safeTransfer.getTransfer(transferId);
         assertEq(transfer.sender, sender);
         assertEq(transfer.recipient, recipient);
         assertEq(transfer.tokenAddress, address(token));
@@ -246,7 +247,7 @@ contract SafeTransferTest is Test {
         vm.prank(recipient);
         safeTransfer.claimTransfer(transferId, "");
 
-        SafeTransfer.Transfer memory transfer = safeTransfer.getTransfer(transferId);
+        ISafeTransfer.Transfer memory transfer = safeTransfer.getTransfer(transferId);
         assertEq(transfer.claimed, true);
         assertEq(token.balanceOf(recipient), recipientBalanceBefore + tokenAmount);
     }
@@ -266,7 +267,7 @@ contract SafeTransferTest is Test {
         vm.prank(sender);
         safeTransfer.cancelTransfer(transferId);
 
-        SafeTransfer.Transfer memory transfer = safeTransfer.getTransfer(transferId);
+        ISafeTransfer.Transfer memory transfer = safeTransfer.getTransfer(transferId);
         assertEq(transfer.cancelled, true);
         assertEq(token.balanceOf(sender), senderBalanceBefore + tokenAmount);
     }
