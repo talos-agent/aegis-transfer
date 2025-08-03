@@ -15,18 +15,22 @@ export default function Home() {
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-background to-primary-100 dark:from-background dark:via-muted dark:to-background flex items-center justify-center p-4 animate-fade-in">
-        <div className="bg-card border border-border rounded-3xl shadow-2xl p-8 max-w-md w-full text-center backdrop-blur-sm animate-slide-up relative">
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-background dark:from-background dark:via-muted dark:to-background flex items-center justify-center p-4 animate-fade-in particle-bg">
+        <div className="bg-card border-2 border-primary/30 rounded-3xl shadow-2xl p-8 max-w-md w-full text-center backdrop-blur-sm animate-slide-up relative glow-border">
           <div className="absolute top-4 right-4">
             <ThemeToggle />
           </div>
           <div className="mb-6">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent mb-4">
-              Aegis
+            <h1 className="text-4xl font-bold text-primary mb-4 drop-shadow-lg" style={{
+              textShadow: '0 0 10px rgba(0, 191, 255, 0.5), 0 0 20px rgba(0, 191, 255, 0.3)',
+              WebkitTextStroke: '1px rgba(0, 191, 255, 0.3)'
+            }}>
+              AEGIS
             </h1>
             <p className="text-muted-foreground text-lg leading-relaxed">
-              Send cryptocurrency transfers that can be cancelled if sent to the wrong address
+              Secure, cancellable cryptocurrency transfers
             </p>
+            <p className="text-primary/70 text-sm font-semibold tracking-wider mt-2">PASSCODE PROTECTED CRYPTO SEND</p>
           </div>
           <ConnectWallet />
         </div>
@@ -35,22 +39,26 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-background to-primary-100 dark:from-background dark:via-muted dark:to-background p-4 animate-fade-in">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background dark:from-background dark:via-muted dark:to-background p-4 animate-fade-in particle-bg">
       <div className="max-w-5xl mx-auto">
         <header className="text-center mb-8 relative">
           <div className="absolute top-0 right-0">
             <ThemeToggle />
           </div>
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent mb-3">
-            Aegis
+          <h1 className="text-5xl font-bold text-primary mb-3 drop-shadow-lg" style={{
+            textShadow: '0 0 15px rgba(0, 191, 255, 0.5), 0 0 30px rgba(0, 191, 255, 0.3)',
+            WebkitTextStroke: '1px rgba(0, 191, 255, 0.3)'
+          }}>
+            AEGIS
           </h1>
           <p className="text-muted-foreground text-xl">Secure, cancellable cryptocurrency transfers</p>
+          <p className="text-primary/70 text-sm font-semibold tracking-wider mt-2">PASSCODE PROTECTED CRYPTO SEND</p>
           <div className="mt-6">
             <ConnectWallet />
           </div>
         </header>
 
-        <div className="bg-card border border-border rounded-3xl shadow-2xl overflow-hidden backdrop-blur-sm animate-slide-up">
+        <div className="bg-card border-2 border-primary/30 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-sm animate-slide-up glow-border">
           <div className="border-b border-border bg-secondary/50">
             <nav className="flex">
               <button

@@ -50,9 +50,12 @@ export function ConnectWallet() {
     <div className="flex flex-col items-center gap-4">
       <button
         onClick={() => open()}
-        className="px-8 py-4 bg-gradient-to-r from-primary to-primary-700 text-primary-foreground rounded-2xl hover:from-primary-600 hover:to-primary-800 transition-all duration-200 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 border border-primary-600"
+        className="px-8 py-4 bg-transparent border-2 border-primary text-primary rounded-2xl hover:bg-primary hover:text-primary-foreground transition-all duration-200 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 glow-border"
+        style={{
+          boxShadow: '0 0 20px rgba(0, 191, 255, 0.3), inset 0 0 20px rgba(0, 191, 255, 0.1)'
+        }}
       >
-        Connect Wallet
+        CONNECT WALLET
       </button>
       <p className="text-sm text-muted-foreground text-center">
         Connect your wallet to start sending secure transfers

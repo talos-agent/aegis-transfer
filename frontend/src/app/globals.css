@@ -23,7 +23,7 @@
   --foreground: #171717;
   --card: #ffffff;
   --card-foreground: #171717;
-  --primary: #3b82f6;
+  --primary: #00bfff;
   --primary-foreground: #ffffff;
   --secondary: #f1f5f9;
   --secondary-foreground: #0f172a;
@@ -31,7 +31,8 @@
   --muted-foreground: #64748b;
   --border: #e2e8f0;
   --input: #ffffff;
-  --ring: #3b82f6;
+  --ring: #00bfff;
+  --accent-glow: #00d4ff;
 }
 
 .dark {
@@ -39,7 +40,7 @@
   --foreground: #ededed;
   --card: #1a1a1a;
   --card-foreground: #ededed;
-  --primary: #3b82f6;
+  --primary: #00bfff;
   --primary-foreground: #ffffff;
   --secondary: #262626;
   --secondary-foreground: #fafafa;
@@ -47,7 +48,8 @@
   --muted-foreground: #a1a1aa;
   --border: #404040;
   --input: #262626;
-  --ring: #3b82f6;
+  --ring: #00bfff;
+  --accent-glow: #00d4ff;
 }
 
 .dark {
@@ -55,6 +57,7 @@
   --color-foreground: #ededed;
   --color-card: #1a1a1a;
   --color-card-foreground: #ededed;
+  --color-primary: #00bfff;
   --color-secondary: #262626;
   --color-secondary-foreground: #fafafa;
   --color-muted: #171717;
@@ -72,4 +75,42 @@ body {
 
 * {
   border-color: var(--border);
+}
+
+/* Particle background effect */
+.particle-bg::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, #00bfff, transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(0, 191, 255, 0.3), transparent),
+    radial-gradient(1px 1px at 90px 40px, #00d4ff, transparent);
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  animation: particle-float 20s linear infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes particle-float {
+  0% { transform: translateY(0px) translateX(0px); }
+  100% { transform: translateY(-200px) translateX(100px); }
+}
+
+/* Glow border effect */
+.glow-border {
+  position: relative;
+}
+
+.glow-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(45deg, transparent, rgba(0, 191, 255, 0.3), transparent);
+  border-radius: inherit;
+  z-index: -1;
 }
