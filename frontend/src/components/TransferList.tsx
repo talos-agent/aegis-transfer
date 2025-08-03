@@ -85,19 +85,19 @@ export function TransferList() {
 
   const getStatusColor = (status: TransferStatus) => {
     switch (status) {
-      case TransferStatus.PENDING: return 'bg-yellow-100 text-yellow-800'
-      case TransferStatus.CLAIMED: return 'bg-green-100 text-green-800'
-      case TransferStatus.CANCELLED: return 'bg-red-100 text-red-800'
-      case TransferStatus.EXPIRED: return 'bg-gray-100 text-gray-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case TransferStatus.PENDING: return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+      case TransferStatus.CLAIMED: return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+      case TransferStatus.CANCELLED: return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+      case TransferStatus.EXPIRED: return 'bg-muted text-muted-foreground'
+      default: return 'bg-muted text-muted-foreground'
     }
   }
 
   if (loading) {
     return (
       <div className="text-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-        <p className="text-gray-600 mt-4">Loading transfers...</p>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+        <p className="text-muted-foreground mt-4">Loading transfers...</p>
       </div>
     )
   }
@@ -105,7 +105,7 @@ export function TransferList() {
   if (transfers.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-600">No transfers found</p>
+        <p className="text-muted-foreground">No transfers found</p>
       </div>
     )
   }
@@ -151,7 +151,7 @@ export function TransferList() {
               <div>Created: {new Date(Number(transfer.timestamp) * 1000).toLocaleString()}</div>
               <div>Expires: {new Date(Number(transfer.expiryTime) * 1000).toLocaleString()}</div>
               {transfer.claimCode !== '0x0000000000000000000000000000000000000000000000000000000000000000' && (
-                <div className="text-blue-600">🔒 Requires claim code</div>
+                <div className="text-primary flex items-center gap-1">🔒 Requires claim code</div>
               )}
             </div>
 
@@ -159,7 +159,7 @@ export function TransferList() {
               <button
                 onClick={() => handleCancelTransfer(transfer.id)}
                 disabled={isPending || isConfirming}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 disabled:bg-muted disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105"
               >
                 {isPending || isConfirming ? 'Cancelling...' : 'Cancel Transfer'}
               </button>

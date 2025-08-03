@@ -115,12 +115,12 @@ export function CreateTransfer() {
         <div className="text-green-600 text-xl font-semibold mb-4">
           Transfer Created Successfully!
         </div>
-        <p className="text-gray-600 mb-4">
+        <p className="text-muted-foreground mb-4">
           Your transfer has been created and is now pending.
         </p>
         <button
           onClick={() => window.location.reload()}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-6 py-3 bg-gradient-to-r from-primary to-primary-700 text-primary-foreground rounded-xl hover:from-primary-600 hover:to-primary-800 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
         >
           Create Another Transfer
         </button>
@@ -130,11 +130,11 @@ export function CreateTransfer() {
 
   return (
     <div className="max-w-md mx-auto">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Send Transfer</h2>
+      <h2 className="text-2xl font-bold text-foreground mb-6">Send Transfer</h2>
       
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-foreground mb-2">
             Recipient Address
           </label>
           <input
@@ -142,13 +142,13 @@ export function CreateTransfer() {
             value={recipient}
             onChange={(e) => setRecipient(e.target.value)}
             placeholder="0x..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent bg-input text-foreground transition-all duration-200 shadow-sm"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-foreground mb-2">
             Token
           </label>
           <select
@@ -157,7 +157,7 @@ export function CreateTransfer() {
               const token = SUPPORTED_TOKENS.find(t => t.address === e.target.value)
               if (token) setSelectedToken(token)
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent bg-input text-foreground transition-all duration-200 shadow-sm"
           >
             {SUPPORTED_TOKENS.map((token) => (
               <option key={token.address} value={token.address}>
@@ -168,7 +168,7 @@ export function CreateTransfer() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-foreground mb-2">
             Amount ({selectedToken.symbol})
           </label>
           <input
@@ -177,13 +177,13 @@ export function CreateTransfer() {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder={selectedToken.symbol === 'ETH' ? '0.1' : '100'}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent bg-input text-foreground transition-all duration-200 shadow-sm"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-foreground mb-2">
             Claim Code (Optional)
           </label>
           <input
@@ -191,21 +191,21 @@ export function CreateTransfer() {
             value={claimCode}
             onChange={(e) => setClaimCode(e.target.value)}
             placeholder="Enter a secret code"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent bg-input text-foreground transition-all duration-200 shadow-sm"
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-muted-foreground mt-2">
             If provided, recipient will need this code to claim the transfer
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-foreground mb-2">
             Expiry (Days)
           </label>
           <select
             value={expiryDays}
             onChange={(e) => setExpiryDays(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent bg-input text-foreground transition-all duration-200 shadow-sm"
           >
             <option value="0">Never expires</option>
             <option value="1">1 Day</option>
@@ -221,7 +221,7 @@ export function CreateTransfer() {
             type="button"
             onClick={handleApprove}
             disabled={isPending || isConfirming || !recipient || !amount}
-            className="w-full py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+            className="w-full py-4 bg-yellow-600 text-white rounded-xl hover:bg-yellow-700 disabled:bg-muted disabled:cursor-not-allowed transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
           >
             {isPending || isConfirming ? 'Approving...' : `Approve ${selectedToken.symbol}`}
           </button>
@@ -229,7 +229,7 @@ export function CreateTransfer() {
           <button
             type="submit"
             disabled={isPending || isConfirming || !recipient || !amount}
-            className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+            className="w-full py-4 bg-gradient-to-r from-primary to-primary-700 text-primary-foreground rounded-xl hover:from-primary-600 hover:to-primary-800 disabled:bg-muted disabled:cursor-not-allowed transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
           >
             {isPending || isConfirming ? 'Creating Transfer...' : 'Create Transfer'}
           </button>
