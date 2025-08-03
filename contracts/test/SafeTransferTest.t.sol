@@ -244,7 +244,7 @@ contract SafeTransferTest is Test {
         assertEq(invoice.amount, invoiceAmount);
         assertEq(invoice.claimed, false);
         assertEq(invoice.cancelled, false);
-        
+
         assertTrue(safeTransfer.getIsInvoice(invoiceId));
         assertEq(safeTransfer.getInvoiceDescription(invoiceId), description);
     }

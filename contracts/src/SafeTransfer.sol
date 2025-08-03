@@ -258,9 +258,7 @@ contract SafeTransfer is ISafeTransfer {
         senderTransfers[_payer].push(invoiceId);
         recipientTransfers[msg.sender].push(invoiceId);
 
-        emit InvoiceCreated(
-            invoiceId, msg.sender, _payer, _tokenAddress, _amount, expiryTime, _description
-        );
+        emit InvoiceCreated(invoiceId, msg.sender, _payer, _tokenAddress, _amount, expiryTime, _description);
 
         return invoiceId;
     }
