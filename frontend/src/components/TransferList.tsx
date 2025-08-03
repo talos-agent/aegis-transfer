@@ -1,12 +1,13 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi'
 import { formatEther, formatUnits } from 'viem'
-import { SAFE_TRANSFER_ABI, SAFE_TRANSFER_ADDRESS, Transfer, SUPPORTED_TOKENS, TransferStatus, TRANSFER_STATUS_LABELS } from '@/lib/contract'
+import { SAFE_TRANSFER_ABI, getSafeTransferAddress, Transfer, SUPPORTED_TOKENS, TransferStatus, TRANSFER_STATUS_LABELS } from '@/lib/contract'
 
 export function TransferList() {
   const { address } = useAccount()
+  const chainId = useChainId()
   const [transfers, setTransfers] = useState<(Transfer & { id: number })[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -14,14 +15,14 @@ export function TransferList() {
   const { isLoading: isConfirming } = useWaitForTransactionReceipt({ hash })
 
   const { data: senderTransferIds } = useReadContract({
-    address: SAFE_TRANSFER_ADDRESS,
+    address: getSafeTransferAddress(chainId),
     abi: SAFE_TRANSFER_ABI,
     functionName: 'getSenderTransfers',
     args: address ? [address] : undefined,
   })
 
   const { data: recipientTransferIds } = useReadContract({
-    address: SAFE_TRANSFER_ADDRESS,
+    address: getSafeTransferAddress(chainId),
     abi: SAFE_TRANSFER_ABI,
     functionName: 'getRecipientTransfers',
     args: address ? [address] : undefined,
@@ -61,7 +62,7 @@ export function TransferList() {
   const handleCancelTransfer = async (transferId: number) => {
     try {
       writeContract({
-        address: SAFE_TRANSFER_ADDRESS,
+        address: getSafeTransferAddress(chainId),
         abi: SAFE_TRANSFER_ABI,
         functionName: 'cancelTransfer',
         args: [BigInt(transferId)],

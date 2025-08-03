@@ -85,7 +85,7 @@ contract SafeTransfer {
         }
 
         uint256 transferId = nextTransferId++;
-        uint256 expiryTime = block.timestamp + (_expiryDuration > 0 ? _expiryDuration : DEFAULT_EXPIRY_DURATION);
+        uint256 expiryTime = _expiryDuration > 0 ? block.timestamp + _expiryDuration : type(uint256).max;
         bytes32 claimCodeHash = bytes(_claimCode).length > 0 ? keccak256(abi.encodePacked(_claimCode)) : bytes32(0);
 
         transfers[transferId] = Transfer({
@@ -123,7 +123,7 @@ contract SafeTransfer {
         if (transfer.recipient != msg.sender) revert NotAuthorized();
         if (transfer.claimed) revert TransferAlreadyClaimed();
         if (transfer.cancelled) revert TransferAlreadyCancelled();
-        if (block.timestamp > transfer.expiryTime) revert TransferExpired();
+        if (transfer.expiryTime != type(uint256).max && block.timestamp > transfer.expiryTime) revert TransferExpired();
 
         if (transfer.claimCode != bytes32(0)) {
             if (keccak256(abi.encodePacked(_claimCode)) != transfer.claimCode) {
@@ -177,7 +177,7 @@ contract SafeTransfer {
 
     function isTransferExpired(uint256 _transferId) external view returns (bool) {
         Transfer memory transfer = transfers[_transferId];
-        return block.timestamp > transfer.expiryTime;
+        return transfer.expiryTime != type(uint256).max && block.timestamp > transfer.expiryTime;
     }
 
     function getTransferStatus(uint256 _transferId) external view returns (TransferStatus) {
@@ -186,7 +186,7 @@ contract SafeTransfer {
         if (transfer.sender == address(0)) return TransferStatus.NOT_FOUND;
         if (transfer.claimed) return TransferStatus.CLAIMED;
         if (transfer.cancelled) return TransferStatus.CANCELLED;
-        if (block.timestamp > transfer.expiryTime) return TransferStatus.EXPIRED;
+        if (transfer.expiryTime != type(uint256).max && block.timestamp > transfer.expiryTime) return TransferStatus.EXPIRED;
         return TransferStatus.PENDING;
     }
 }
