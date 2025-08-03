@@ -7,7 +7,7 @@ export const SUPPORTED_NETWORKS = {
 
 export const isSupportedNetwork = (chainId: number | undefined): boolean => {
   if (!chainId) return false
-  return SUPPORTED_CHAIN_IDS.includes(chainId as any)
+  return SUPPORTED_CHAIN_IDS.includes(chainId as typeof SUPPORTED_CHAIN_IDS[number])
 }
 
 export const getSupportedNetworkName = (chainId: number): string => {

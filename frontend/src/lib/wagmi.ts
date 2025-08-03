@@ -1,6 +1,6 @@
 import { createAppKit } from '@reown/appkit/react'
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
-import { mainnet, arbitrum } from '@reown/appkit/networks'
+import { mainnet, arbitrum, type AppKitNetwork } from '@reown/appkit/networks'
 
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'demo'
 
@@ -15,7 +15,7 @@ const metadata = {
   icons: ['https://avatars.githubusercontent.com/u/37784886']
 }
 
-const networks = [mainnet, arbitrum]
+const networks: [AppKitNetwork, ...AppKitNetwork[]] = [mainnet, arbitrum]
 
 export const wagmiAdapter = new WagmiAdapter({
   networks,
@@ -25,7 +25,7 @@ export const wagmiAdapter = new WagmiAdapter({
 
 createAppKit({
   adapters: [wagmiAdapter],
-  networks: networks as any,
+  networks,
   projectId,
   metadata,
   features: {

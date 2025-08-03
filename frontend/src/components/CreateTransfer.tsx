@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { useWriteContract, useWaitForTransactionReceipt, useAccount, useReadContract, useChainId } from 'wagmi'
-import { parseEther, parseUnits, formatUnits } from 'viem'
+import { parseEther, parseUnits } from 'viem'
 import { SAFE_TRANSFER_ABI, getSafeTransferAddress, ERC20_ABI, SUPPORTED_TOKENS, TokenInfo } from '@/lib/contract'
 import { isSupportedNetwork } from '@/lib/network'
 import { NetworkWarning } from './NetworkWarning'
