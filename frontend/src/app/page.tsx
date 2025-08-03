@@ -5,14 +5,13 @@ import { useAccount } from 'wagmi'
 import { ConnectWallet } from '@/components/ConnectWallet'
 import { CreateTransfer } from '@/components/CreateTransfer'
 import { TransferList } from '@/components/TransferList'
-import { ClaimTransfer } from '@/components/ClaimTransfer'
 import { CreateInvoice } from '@/components/CreateInvoice'
 import { InvoiceList } from '@/components/InvoiceList'
 import { ThemeToggle } from '@/components/ThemeToggle'
 
 export default function Home() {
   const { isConnected } = useAccount()
-  const [activeTab, setActiveTab] = useState<'send' | 'receive' | 'claim' | 'invoice'>('send')
+  const [activeTab, setActiveTab] = useState<'send' | 'receive' | 'invoice'>('send')
 
   if (!isConnected) {
     return (
@@ -75,16 +74,6 @@ export default function Home() {
                 My Transfers
               </button>
               <button
-                onClick={() => setActiveTab('claim')}
-                className={`flex-1 py-4 px-6 text-center font-semibold transition-all duration-200 ${
-                  activeTab === 'claim'
-                    ? 'text-primary bg-background border-b-2 border-primary shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
-                }`}
-              >
-                Claim Transfer
-              </button>
-              <button
                 onClick={() => setActiveTab('invoice')}
                 className={`flex-1 py-4 px-6 text-center font-semibold transition-all duration-200 ${
                   activeTab === 'invoice'
@@ -100,7 +89,6 @@ export default function Home() {
           <div className="p-8">
             {activeTab === 'send' && <CreateTransfer />}
             {activeTab === 'receive' && <TransferList />}
-            {activeTab === 'claim' && <ClaimTransfer />}
             {activeTab === 'invoice' && (
               <div className="space-y-8">
                 <CreateInvoice />
