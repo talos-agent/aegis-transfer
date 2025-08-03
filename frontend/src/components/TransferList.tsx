@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from 'react'
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
-import { formatEther } from 'viem'
-import { SAFE_TRANSFER_ABI, SAFE_TRANSFER_ADDRESS, Transfer } from '@/lib/contract'
+import { formatEther, formatUnits } from 'viem'
+import { SAFE_TRANSFER_ABI, SAFE_TRANSFER_ADDRESS, Transfer, SUPPORTED_TOKENS } from '@/lib/contract'
 
 export function TransferList() {
   const { address } = useAccount()
@@ -71,6 +71,17 @@ export function TransferList() {
     }
   }
 
+  const formatAmount = (amount: bigint, tokenAddress: string) => {
+    const token = SUPPORTED_TOKENS.find(t => t.address.toLowerCase() === tokenAddress.toLowerCase())
+    if (!token) return `${formatEther(amount)} ETH`
+    
+    if (token.address === '0x0000000000000000000000000000000000000000') {
+      return `${formatEther(amount)} ${token.symbol}`
+    }
+    
+    return `${formatUnits(amount, token.decimals)} ${token.symbol}`
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'PENDING': return 'bg-yellow-100 text-yellow-800'
@@ -121,7 +132,7 @@ export function TransferList() {
                   </span>
                 </div>
                 <div className="text-lg font-semibold">
-                  {formatEther(transfer.amount)} ETH
+                  {formatAmount(transfer.amount, transfer.tokenAddress)}
                 </div>
               </div>
               
