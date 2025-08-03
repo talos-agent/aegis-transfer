@@ -22,7 +22,7 @@ export function NetworkWarning() {
         <div className="flex-1">
           <h3 className="text-red-800 font-semibold mb-1">Unsupported Network</h3>
           <p className="text-red-700 text-sm mb-3">
-            You're connected to an unsupported network. Aegis only supports {supportedNetworkNames}.
+            You&apos;re connected to an unsupported network. Aegis only supports {supportedNetworkNames}.
             Please switch to a supported network to create or claim transfers.
           </p>
           <button

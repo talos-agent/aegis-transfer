@@ -50,26 +50,15 @@ export class LayerZeroBridge implements BridgeProvider {
     return [1, 42161]
   }
 
-  async getQuote(
-    sourceChain: number,
-    destinationChain: number,
-    tokenAddress: string,
-    amount: bigint
-  ): Promise<BridgeQuote> {
+  async getQuote(): Promise<BridgeQuote> {
     throw new Error('LayerZero integration not implemented yet')
   }
 
-  async initiateBridge(
-    sourceChain: number,
-    destinationChain: number,
-    tokenAddress: string,
-    amount: bigint,
-    recipient: string
-  ): Promise<BridgeTransfer> {
+  async initiateBridge(): Promise<BridgeTransfer> {
     throw new Error('LayerZero integration not implemented yet')
   }
 
-  async getTransferStatus(transferId: string): Promise<BridgeTransferStatus> {
+  async getTransferStatus(): Promise<BridgeTransferStatus> {
     throw new Error('LayerZero integration not implemented yet')
   }
 }
@@ -81,26 +70,15 @@ export class AxelarBridge implements BridgeProvider {
     return [1, 42161]
   }
 
-  async getQuote(
-    sourceChain: number,
-    destinationChain: number,
-    tokenAddress: string,
-    amount: bigint
-  ): Promise<BridgeQuote> {
+  async getQuote(): Promise<BridgeQuote> {
     throw new Error('Axelar integration not implemented yet')
   }
 
-  async initiateBridge(
-    sourceChain: number,
-    destinationChain: number,
-    tokenAddress: string,
-    amount: bigint,
-    recipient: string
-  ): Promise<BridgeTransfer> {
+  async initiateBridge(): Promise<BridgeTransfer> {
     throw new Error('Axelar integration not implemented yet')
   }
 
-  async getTransferStatus(transferId: string): Promise<BridgeTransferStatus> {
+  async getTransferStatus(): Promise<BridgeTransferStatus> {
     throw new Error('Axelar integration not implemented yet')
   }
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { useAccount, useChainId } from 'wagmi'
+import { useAccount } from 'wagmi'
 import { useAppKit, useAppKitAccount, useAppKitNetwork } from '@reown/appkit/react'
 
 export function ConnectWallet() {
@@ -9,7 +9,6 @@ export function ConnectWallet() {
   const { address } = useAppKitAccount()
   const { caipNetwork } = useAppKitNetwork()
   const { open } = useAppKit()
-  const chainId = useChainId()
 
   if (isConnected && address) {
     return (
