@@ -48,6 +48,3 @@ jest.mock('next/navigation', () => ({
 }))
 
 global.fetch = jest.fn()
-
-delete window.location
-window.location = { reload: jest.fn() }
