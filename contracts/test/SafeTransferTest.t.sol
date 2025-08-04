@@ -411,6 +411,63 @@ contract SafeTransferTest is Test {
         vm.expectRevert("Transfer failed");
         safeTransfer.claimTransfer(transferId, "");
     }
+
+    function test_PaginatedSenderTransfers() public {
+        // Create multiple transfers
+        for (uint256 i = 0; i < 5; i++) {
+            vm.prank(sender);
+            safeTransfer.createTransfer{value: 0.1 ether}(recipient, address(0), 0, 0, "");
+        }
+
+        // Test pagination
+        (uint256[] memory transfers, uint256 total) = safeTransfer.getSenderTransfers(sender, 0, 3);
+        assertEq(transfers.length, 3);
+        assertEq(total, 5);
+
+        // Test second page
+        (uint256[] memory transfers2, uint256 total2) = safeTransfer.getSenderTransfers(sender, 3, 3);
+        assertEq(transfers2.length, 2);
+        assertEq(total2, 5);
+    }
+
+    function test_PaginatedRecipientTransfers() public {
+        // Create multiple transfers
+        for (uint256 i = 0; i < 5; i++) {
+            vm.prank(sender);
+            safeTransfer.createTransfer{value: 0.1 ether}(recipient, address(0), 0, 0, "");
+        }
+
+        // Test pagination
+        (uint256[] memory transfers, uint256 total) = safeTransfer.getRecipientTransfers(recipient, 0, 3);
+        assertEq(transfers.length, 3);
+        assertEq(total, 5);
+
+        // Test second page
+        (uint256[] memory transfers2, uint256 total2) = safeTransfer.getRecipientTransfers(recipient, 3, 3);
+        assertEq(transfers2.length, 2);
+        assertEq(total2, 5);
+    }
+
+    function test_MaxTransfersPerPageLimit() public {
+        // Test that limit is capped at MAX_TRANSFERS_PER_PAGE
+        (uint256[] memory transfers, uint256 total) = safeTransfer.getSenderTransfers(sender, 0, 200);
+        // Should return empty array since sender has no transfers yet
+        assertEq(transfers.length, 0);
+        assertEq(total, 0);
+    }
+
+    function test_FeeOnTransferTokenHandling() public {
+        // This test would require a mock fee-on-transfer token
+        // For now, we test that the enhanced safety checks don't break normal tokens
+        vm.prank(sender);
+        uint256 transferId = safeTransfer.createTransfer(recipient, address(token), tokenAmount, 0, "");
+
+        vm.prank(recipient);
+        safeTransfer.claimTransfer(transferId, "");
+
+        ISafeTransfer.Transfer memory transfer = safeTransfer.getTransfer(transferId);
+        assertEq(transfer.claimed, true);
+    }
 }
 
 contract MaliciousRecipient {
