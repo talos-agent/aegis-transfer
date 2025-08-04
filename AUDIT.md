@@ -143,6 +143,10 @@ The contract architecture is robust, well-tested, and follows industry best prac
 
 The contract system is ready for production deployment with no security concerns requiring remediation.
 
+## Related Audits
+
+This audit is part of a comprehensive security assessment of the talos-agent ecosystem. A companion audit of the **token-contracts** repository has also been completed, identifying and fixing 4 security vulnerabilities including critical division by zero issues and access control inconsistencies.
+
 ---
 
 **Disclaimer:** This audit represents a point-in-time assessment based on the current codebase. Smart contract security is an evolving field, and regular security reviews are recommended as the system grows and evolves.
