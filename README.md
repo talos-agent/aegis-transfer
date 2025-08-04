@@ -1,6 +1,6 @@
 # Aegis Transfer
 
-![Aegis Transfer Hero](assets/hero-image.jpg)
+<img src="assets/hero-image.jpg" alt="Aegis Transfer Hero" width="600">
 
 [![Solidity](https://img.shields.io/badge/Solidity-^0.8.13-363636?style=flat-square&logo=solidity)](https://soliditylang.org/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)](https://reactjs.org/)
