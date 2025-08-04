@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi'
 import { formatEther, formatUnits } from 'viem'
-import { SAFE_TRANSFER_ABI, getSafeTransferAddress, Transfer, SUPPORTED_TOKENS, ERC20_ABI } from '@/lib/contract'
+import { SAFE_TRANSFER_ABI, getSafeTransferAddress, Transfer, SUPPORTED_TOKENS } from '@/lib/contract'
 
 export function InvoiceList() {
   const { address } = useAccount()

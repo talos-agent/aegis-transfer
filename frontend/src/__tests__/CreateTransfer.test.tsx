@@ -11,7 +11,7 @@ describe('CreateTransfer', () => {
   it('renders form fields', () => {
     render(<CreateTransfer />)
     
-    expect(screen.getByText('Recipient Address')).toBeInTheDocument()
+    expect(screen.getByText('Recipient Address or ENS Name')).toBeInTheDocument()
     expect(screen.getByText('Token')).toBeInTheDocument()
     expect(screen.getByText(/Amount \(/)).toBeInTheDocument()
   })

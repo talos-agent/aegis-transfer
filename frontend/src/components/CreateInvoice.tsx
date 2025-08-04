@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useCallback } from 'react'
-import { useWriteContract, useWaitForTransactionReceipt, useAccount, useChainId } from 'wagmi'
+import { useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi'
 import { parseEther, parseUnits } from 'viem'
 import { SAFE_TRANSFER_ABI, getSafeTransferAddress, SUPPORTED_TOKENS, TokenInfo } from '@/lib/contract'
 import { isSupportedNetwork } from '@/lib/network'
