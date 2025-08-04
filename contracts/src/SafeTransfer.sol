@@ -26,10 +26,10 @@ contract SafeTransfer is ISafeTransfer {
 
     /// @notice Counter for generating unique transfer IDs
     uint256 public nextTransferId;
-    
+
     /// @notice Mapping for commit-reveal mechanism
     mapping(bytes32 => uint256) private commitments;
-    
+
     /// @notice Maximum number of transfers to return in paginated queries
     uint256 public constant MAX_TRANSFERS_PER_PAGE = 100;
 
@@ -91,7 +91,9 @@ contract SafeTransfer is ISafeTransfer {
         uint256 transferId = nextTransferId++;
         // Add entropy to prevent front-running for sensitive transfers
         if (bytes(_claimCode).length > 0) {
-            transferId = uint256(keccak256(abi.encodePacked(transferId, block.timestamp, msg.sender, blockhash(block.number - 1))));
+            transferId = uint256(
+                keccak256(abi.encodePacked(transferId, block.timestamp, msg.sender, blockhash(block.number - 1)))
+            );
         }
         uint256 expiryTime = _expiryDuration > 0 ? block.timestamp + _expiryDuration : type(uint256).max;
         bytes32 claimCodeHash = bytes(_claimCode).length > 0 ? keccak256(abi.encodePacked(_claimCode)) : bytes32(0);
@@ -209,21 +211,24 @@ contract SafeTransfer is ISafeTransfer {
      * @return transferIds Array of transfer IDs created by the sender
      * @return total Total number of transfers for this sender
      */
-    function getSenderTransfers(address _sender, uint256 _offset, uint256 _limit) 
-        external view returns (uint256[] memory transferIds, uint256 total) {
+    function getSenderTransfers(address _sender, uint256 _offset, uint256 _limit)
+        external
+        view
+        returns (uint256[] memory transferIds, uint256 total)
+    {
         uint256[] storage allTransfers = senderTransfers[_sender];
         total = allTransfers.length;
-        
+
         if (_offset >= total) {
             return (new uint256[](0), total);
         }
-        
+
         uint256 limit = _limit > MAX_TRANSFERS_PER_PAGE ? MAX_TRANSFERS_PER_PAGE : _limit;
         uint256 end = _offset + limit;
         if (end > total) {
             end = total;
         }
-        
+
         transferIds = new uint256[](end - _offset);
         for (uint256 i = _offset; i < end; i++) {
             transferIds[i - _offset] = allTransfers[i];
@@ -238,21 +243,24 @@ contract SafeTransfer is ISafeTransfer {
      * @return transferIds Array of transfer IDs for the recipient
      * @return total Total number of transfers for this recipient
      */
-    function getRecipientTransfers(address _recipient, uint256 _offset, uint256 _limit) 
-        external view returns (uint256[] memory transferIds, uint256 total) {
+    function getRecipientTransfers(address _recipient, uint256 _offset, uint256 _limit)
+        external
+        view
+        returns (uint256[] memory transferIds, uint256 total)
+    {
         uint256[] storage allTransfers = recipientTransfers[_recipient];
         total = allTransfers.length;
-        
+
         if (_offset >= total) {
             return (new uint256[](0), total);
         }
-        
+
         uint256 limit = _limit > MAX_TRANSFERS_PER_PAGE ? MAX_TRANSFERS_PER_PAGE : _limit;
         uint256 end = _offset + limit;
         if (end > total) {
             end = total;
         }
-        
+
         transferIds = new uint256[](end - _offset);
         for (uint256 i = _offset; i < end; i++) {
             transferIds[i - _offset] = allTransfers[i];
@@ -402,7 +410,7 @@ contract SafeTransfer is ISafeTransfer {
         uint256 balanceBefore = IERC20(token).balanceOf(to);
         (bool success, bytes memory data) = token.call(abi.encodeWithSelector(IERC20.transfer.selector, to, amount));
         require(success && (data.length == 0 || abi.decode(data, (bool))), "SafeTransfer: transfer failed");
-        
+
         // Verify actual amount transferred (handles fee-on-transfer tokens)
         uint256 balanceAfter = IERC20(token).balanceOf(to);
         require(balanceAfter >= balanceBefore, "SafeTransfer: balance decreased");
@@ -414,7 +422,7 @@ contract SafeTransfer is ISafeTransfer {
         (bool success, bytes memory data) =
             token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, amount));
         require(success && (data.length == 0 || abi.decode(data, (bool))), "SafeTransfer: transferFrom failed");
-        
+
         // Verify actual amount transferred (handles fee-on-transfer tokens)
         uint256 balanceAfter = IERC20(token).balanceOf(to);
         require(balanceAfter >= balanceBefore, "SafeTransfer: balance decreased");

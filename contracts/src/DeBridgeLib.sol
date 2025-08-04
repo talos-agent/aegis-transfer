@@ -185,9 +185,11 @@ library DeBridgeLib {
         if (sourceToken != address(0)) {
             // Verify token contract exists
             uint256 codeSize;
-            assembly { codeSize := extcodesize(sourceToken) }
+            assembly {
+                codeSize := extcodesize(sourceToken)
+            }
             if (codeSize == 0) revert UnsupportedToken(sourceToken);
-            
+
             // Transfer tokens from sender to this contract
             IERC20(sourceToken).transferFrom(msg.sender, address(this), amount);
             IERC20(sourceToken).approve(dlnSource, amount);
