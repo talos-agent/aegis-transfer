@@ -176,8 +176,20 @@ library DeBridgeLib {
         // Get protocol fee
         uint256 protocolFee = IDlnSource(dlnSource).globalFixedNativeFee();
 
+        // Validate inputs
+        if (amount == 0) revert InsufficientAmount(0, 1);
+        if (receiver == address(0)) revert UnsupportedToken(receiver);
+        if (sourceToken != address(0) && destinationToken == address(0)) revert UnsupportedToken(destinationToken);
+
         // Handle token transfers and approvals
         if (sourceToken != address(0)) {
+            // Verify token contract exists
+            uint256 codeSize;
+            assembly {
+                codeSize := extcodesize(sourceToken)
+            }
+            if (codeSize == 0) revert UnsupportedToken(sourceToken);
+
             // Transfer tokens from sender to this contract
             IERC20(sourceToken).transferFrom(msg.sender, address(this), amount);
             IERC20(sourceToken).approve(dlnSource, amount);

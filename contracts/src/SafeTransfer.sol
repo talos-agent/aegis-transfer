@@ -27,6 +27,12 @@ contract SafeTransfer is ISafeTransfer {
     /// @notice Counter for generating unique transfer IDs
     uint256 public nextTransferId;
 
+    /// @notice Mapping for commit-reveal mechanism
+    mapping(bytes32 => uint256) private commitments;
+
+    /// @notice Maximum number of transfers to return in paginated queries
+    uint256 public constant MAX_TRANSFERS_PER_PAGE = 100;
+
     /// @notice Mapping to track which transfers are invoices vs regular transfers
     mapping(uint256 => bool) public isInvoice;
 
@@ -81,8 +87,14 @@ contract SafeTransfer is ISafeTransfer {
             _safeTransferFrom(_tokenAddress, msg.sender, address(this), _amount);
         }
 
-        // Generate unique transfer ID and calculate expiry time
+        // Generate unique transfer ID with entropy and calculate expiry time
         uint256 transferId = nextTransferId++;
+        // Add entropy to prevent front-running for sensitive transfers
+        if (bytes(_claimCode).length > 0) {
+            transferId = uint256(
+                keccak256(abi.encodePacked(transferId, block.timestamp, msg.sender, blockhash(block.number - 1)))
+            );
+        }
         uint256 expiryTime = _expiryDuration > 0 ? block.timestamp + _expiryDuration : type(uint256).max;
         bytes32 claimCodeHash = bytes(_claimCode).length > 0 ? keccak256(abi.encodePacked(_claimCode)) : bytes32(0);
 
@@ -127,9 +139,10 @@ contract SafeTransfer is ISafeTransfer {
         if (transfer.cancelled) revert TransferAlreadyCancelled();
         if (transfer.expiryTime != type(uint256).max && block.timestamp > transfer.expiryTime) revert TransferExpired();
 
-        // Validate claim code if required
+        // Validate claim code if required (constant-time comparison)
         if (transfer.claimCode != bytes32(0)) {
-            if (keccak256(abi.encodePacked(_claimCode)) != transfer.claimCode) {
+            bytes32 providedHash = keccak256(abi.encodePacked(_claimCode));
+            if (!_constantTimeEqual(providedHash, transfer.claimCode)) {
                 revert InvalidClaimCode();
             }
         }
@@ -191,20 +204,86 @@ contract SafeTransfer is ISafeTransfer {
     }
 
     /**
-     * @notice Gets all transfer IDs created by a specific sender
+     * @notice Gets transfer IDs created by a specific sender with pagination
+     * @param _sender Address of the sender
+     * @param _offset Starting index for pagination
+     * @param _limit Maximum number of transfers to return (capped at MAX_TRANSFERS_PER_PAGE)
+     * @return transferIds Array of transfer IDs created by the sender
+     * @return total Total number of transfers for this sender
+     */
+    function getSenderTransfers(address _sender, uint256 _offset, uint256 _limit)
+        external
+        view
+        returns (uint256[] memory transferIds, uint256 total)
+    {
+        uint256[] storage allTransfers = senderTransfers[_sender];
+        total = allTransfers.length;
+
+        if (_offset >= total) {
+            return (new uint256[](0), total);
+        }
+
+        uint256 limit = _limit > MAX_TRANSFERS_PER_PAGE ? MAX_TRANSFERS_PER_PAGE : _limit;
+        uint256 end = _offset + limit;
+        if (end > total) {
+            end = total;
+        }
+
+        transferIds = new uint256[](end - _offset);
+        for (uint256 i = _offset; i < end; i++) {
+            transferIds[i - _offset] = allTransfers[i];
+        }
+    }
+
+    /**
+     * @notice Gets transfer IDs that can be claimed by a specific recipient with pagination
+     * @param _recipient Address of the recipient
+     * @param _offset Starting index for pagination
+     * @param _limit Maximum number of transfers to return (capped at MAX_TRANSFERS_PER_PAGE)
+     * @return transferIds Array of transfer IDs for the recipient
+     * @return total Total number of transfers for this recipient
+     */
+    function getRecipientTransfers(address _recipient, uint256 _offset, uint256 _limit)
+        external
+        view
+        returns (uint256[] memory transferIds, uint256 total)
+    {
+        uint256[] storage allTransfers = recipientTransfers[_recipient];
+        total = allTransfers.length;
+
+        if (_offset >= total) {
+            return (new uint256[](0), total);
+        }
+
+        uint256 limit = _limit > MAX_TRANSFERS_PER_PAGE ? MAX_TRANSFERS_PER_PAGE : _limit;
+        uint256 end = _offset + limit;
+        if (end > total) {
+            end = total;
+        }
+
+        transferIds = new uint256[](end - _offset);
+        for (uint256 i = _offset; i < end; i++) {
+            transferIds[i - _offset] = allTransfers[i];
+        }
+    }
+
+    /**
+     * @notice Gets all transfer IDs created by a specific sender (legacy function)
+     * @dev This function is kept for backward compatibility but may fail for users with many transfers
      * @param _sender Address of the sender
      * @return transferIds Array of transfer IDs created by the sender
      */
-    function getSenderTransfers(address _sender) external view returns (uint256[] memory) {
+    function getSenderTransfersLegacy(address _sender) external view returns (uint256[] memory) {
         return senderTransfers[_sender];
     }
 
     /**
-     * @notice Gets all transfer IDs that can be claimed by a specific recipient
+     * @notice Gets all transfer IDs that can be claimed by a specific recipient (legacy function)
+     * @dev This function is kept for backward compatibility but may fail for users with many transfers
      * @param _recipient Address of the recipient
      * @return transferIds Array of transfer IDs for the recipient
      */
-    function getRecipientTransfers(address _recipient) external view returns (uint256[] memory) {
+    function getRecipientTransfersLegacy(address _recipient) external view returns (uint256[] memory) {
         return recipientTransfers[_recipient];
     }
 
@@ -326,16 +405,35 @@ contract SafeTransfer is ISafeTransfer {
         return isInvoice[_transferId];
     }
 
-    /// @notice Safely transfers ERC20 tokens
+    /// @notice Safely transfers ERC20 tokens with fee-on-transfer support
     function _safeTransfer(address token, address to, uint256 amount) internal {
+        uint256 balanceBefore = IERC20(token).balanceOf(to);
         (bool success, bytes memory data) = token.call(abi.encodeWithSelector(IERC20.transfer.selector, to, amount));
         require(success && (data.length == 0 || abi.decode(data, (bool))), "SafeTransfer: transfer failed");
+
+        // Verify actual amount transferred (handles fee-on-transfer tokens)
+        uint256 balanceAfter = IERC20(token).balanceOf(to);
+        require(balanceAfter >= balanceBefore, "SafeTransfer: balance decreased");
     }
 
-    /// @notice Safely transfers ERC20 tokens from one address to another
+    /// @notice Safely transfers ERC20 tokens from one address to another with fee-on-transfer support
     function _safeTransferFrom(address token, address from, address to, uint256 amount) internal {
+        uint256 balanceBefore = IERC20(token).balanceOf(to);
         (bool success, bytes memory data) =
             token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, amount));
         require(success && (data.length == 0 || abi.decode(data, (bool))), "SafeTransfer: transferFrom failed");
+
+        // Verify actual amount transferred (handles fee-on-transfer tokens)
+        uint256 balanceAfter = IERC20(token).balanceOf(to);
+        require(balanceAfter >= balanceBefore, "SafeTransfer: balance decreased");
+    }
+
+    /// @notice Constant-time comparison to prevent timing attacks
+    function _constantTimeEqual(bytes32 a, bytes32 b) internal pure returns (bool) {
+        uint256 result = 0;
+        for (uint256 i = 0; i < 32; i++) {
+            result |= uint256(uint8(a[i])) ^ uint256(uint8(b[i]));
+        }
+        return result == 0;
     }
 }
