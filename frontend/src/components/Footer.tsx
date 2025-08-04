@@ -5,7 +5,7 @@ import { ExternalLink } from 'lucide-react'
 
 export function Footer() {
   return (
-    <footer className="mt-auto bg-card border-t border-border">
+    <footer className="mt-auto bg-card/80 border-t border-border">
       <div className="max-w-5xl mx-auto px-4 py-6">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
           <a

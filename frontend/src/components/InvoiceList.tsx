@@ -143,7 +143,7 @@ export function InvoiceList() {
         const isPayer = invoice.sender.toLowerCase() === address?.toLowerCase()
         
         return (
-          <div key={invoice.id} className="border border-border rounded-2xl p-6 bg-card shadow-lg backdrop-blur-sm">
+          <div key={invoice.id} className="border border-border rounded-2xl p-6 bg-card/80 shadow-lg backdrop-blur-sm">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <div className="flex items-center gap-2 mb-2">
