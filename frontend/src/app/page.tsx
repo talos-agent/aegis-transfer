@@ -15,7 +15,7 @@ export default function Home() {
 
   if (!isConnected) {
     return (
-      <div className="bg-gradient-to-br from-background via-background to-background dark:from-background dark:via-muted dark:to-background flex items-center justify-center p-4 animate-fade-in particle-bg">
+      <div className="bg-gradient-to-br from-background via-background to-background dark:from-background dark:via-muted dark:to-background min-h-screen flex items-center justify-center p-4 animate-fade-in particle-bg">
         <div className="bg-card border-2 border-primary/30 rounded-3xl shadow-2xl p-8 max-w-md w-full text-center backdrop-blur-sm animate-slide-up relative glow-border">
           <div className="absolute top-4 right-4">
             <ThemeToggle />
