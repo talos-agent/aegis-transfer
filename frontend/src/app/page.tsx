@@ -58,7 +58,7 @@ export default function Home() {
           </div>
         </header>
 
-        <div className="bg-card border-2 border-primary/30 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-sm animate-slide-up glow-border">
+        <div className="bg-card/80 border-2 border-primary/30 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-sm animate-slide-up glow-border">
           <div className="border-b border-border bg-secondary/50">
             <nav className="flex">
               <button
