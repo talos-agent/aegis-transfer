@@ -101,9 +101,6 @@ interface ISafeTransfer {
     /// @notice Thrown when provided claim code is invalid
     error InvalidClaimCode();
 
-    /// @notice Thrown when attempting to cancel non-expired transfer
-    error TransferNotExpired();
-
     /// @notice Thrown when invoice is not found
     error InvoiceNotFound();
 
