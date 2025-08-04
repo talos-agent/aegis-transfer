@@ -143,7 +143,7 @@ export function ClaimTransfer() {
         </div>
 
         {transfer && (
-          <div className="bg-card border border-border rounded-xl p-4 space-y-4">
+          <div className="bg-card/80 border border-border rounded-xl p-4 space-y-4">
             <h3 className="text-lg font-semibold text-foreground">Transfer Details</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">

@@ -39,7 +39,7 @@ export default function Home() {
   }
 
   return (
-    <div className="bg-gradient-to-br from-background via-background to-background dark:from-background dark:via-muted dark:to-background p-4 animate-fade-in particle-bg">
+    <div className="p-4 animate-fade-in particle-bg">
       <div className="max-w-5xl mx-auto">
         <header className="text-center mb-8 relative">
           <div className="absolute top-0 right-0">
@@ -58,15 +58,15 @@ export default function Home() {
           </div>
         </header>
 
-        <div className="bg-card border-2 border-primary/30 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-sm animate-slide-up glow-border">
+        <div className="bg-card/80 border-2 border-primary/30 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-sm animate-slide-up glow-border">
           <div className="border-b border-border bg-secondary/50">
             <nav className="flex">
               <button
                 onClick={() => setActiveTab('send')}
                 className={`flex-1 py-4 px-6 text-center font-semibold transition-all duration-200 ${
                   activeTab === 'send'
-                    ? 'text-primary bg-background border-b-2 border-primary shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                    ? 'text-primary bg-background/80 border-b-2 border-primary shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/30'
                 }`}
               >
                 Send Transfer
@@ -75,8 +75,8 @@ export default function Home() {
                 onClick={() => setActiveTab('receive')}
                 className={`flex-1 py-4 px-6 text-center font-semibold transition-all duration-200 ${
                   activeTab === 'receive'
-                    ? 'text-primary bg-background border-b-2 border-primary shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                    ? 'text-primary bg-background/80 border-b-2 border-primary shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/30'
                 }`}
               >
                 My Transfers
@@ -85,8 +85,8 @@ export default function Home() {
                 onClick={() => setActiveTab('invoice')}
                 className={`flex-1 py-4 px-6 text-center font-semibold transition-all duration-200 ${
                   activeTab === 'invoice'
-                    ? 'text-primary bg-background border-b-2 border-primary shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                    ? 'text-primary bg-background/80 border-b-2 border-primary shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/30'
                 }`}
               >
                 Invoices

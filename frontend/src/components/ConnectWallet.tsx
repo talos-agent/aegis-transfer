@@ -12,7 +12,7 @@ export function ConnectWallet() {
 
   if (isConnected && address) {
     return (
-      <div className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-card border border-border rounded-2xl shadow-lg backdrop-blur-sm">
+      <div className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-card/80 border border-border rounded-2xl shadow-lg backdrop-blur-sm">
         <div className="flex items-center gap-3">
           <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50"></div>
           <div className="flex flex-col">
