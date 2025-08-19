@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { useWriteContract, useWaitForTransactionReceipt, useAccount, useReadContract, useChainId } from 'wagmi'
 import { parseEther, parseUnits } from 'viem'
 import { SAFE_TRANSFER_ABI, getSafeTransferAddress, ERC20_ABI, SUPPORTED_TOKENS, TokenInfo } from '@/lib/contract'
@@ -160,6 +160,19 @@ export function CreateTransfer() {
     }
   }, [selectedToken, amount, allowance])
 
+  useEffect(() => {
+    if (isSuccess) {
+      setRecipient('')
+      setAmount('')
+      setClaimCode('')
+      setExpiryDays('7')
+      setSelectedToken(SUPPORTED_TOKENS[0])
+      setEnsResolution(null)
+      setResolvedAddress(null)
+      setNeedsApproval(false)
+    }
+  }, [isSuccess])
+
   if (isSuccess) {
     return (
       <div className="text-center py-8">
@@ -169,12 +182,6 @@ export function CreateTransfer() {
         <p className="text-muted-foreground mb-4">
           Your transfer has been created and is now pending.
         </p>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-6 py-3 bg-transparent border-2 border-primary text-primary rounded-xl hover:bg-primary hover:text-primary-foreground transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 glow-border"
-        >
-          Create Another Transfer
-        </button>
       </div>
     )
   }

@@ -99,12 +99,6 @@ export function ClaimTransfer() {
         <p className="text-muted-foreground mb-4">
           The transfer has been claimed and funds have been sent to your wallet.
         </p>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-6 py-3 bg-transparent border-2 border-primary text-primary rounded-xl hover:bg-primary hover:text-primary-foreground transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 glow-border"
-        >
-          Claim Another Transfer
-        </button>
       </div>
     )
   }

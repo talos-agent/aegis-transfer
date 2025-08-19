@@ -21,14 +21,14 @@ export function TransferList() {
   const { writeContract, data: hash, isPending } = useWriteContract()
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
 
-  const { data: senderTransferData } = useReadContract({
+  const { data: senderTransferData, refetch: refetchSenderTransfers } = useReadContract({
     address: getSafeTransferAddress(chainId),
     abi: SAFE_TRANSFER_ABI,
     functionName: 'getSenderTransfers',
     args: address ? [address, BigInt(0), BigInt(100)] : undefined,
   })
 
-  const { data: recipientTransferData } = useReadContract({
+  const { data: recipientTransferData, refetch: refetchRecipientTransfers } = useReadContract({
     address: getSafeTransferAddress(chainId),
     abi: SAFE_TRANSFER_ABI,
     functionName: 'getRecipientTransfers',
@@ -201,15 +201,21 @@ export function TransferList() {
     }
   }
 
+  useEffect(() => {
+    if (isSuccess) {
+      refetchSenderTransfers()
+      refetchRecipientTransfers()
+    }
+  }, [isSuccess, refetchSenderTransfers, refetchRecipientTransfers])
+
   if (isSuccess) {
-    setTimeout(() => window.location.reload(), 2000)
     return (
       <div className="text-center py-8">
         <div className="text-green-600 text-xl font-semibold mb-4">
           Transfer Action Completed Successfully!
         </div>
         <p className="text-muted-foreground mb-4">
-          The page will refresh automatically.
+          The transfer list has been updated automatically.
         </p>
       </div>
     )
