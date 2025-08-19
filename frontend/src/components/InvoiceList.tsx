@@ -108,6 +108,8 @@ export function InvoiceList() {
             isInvoice: true
           }
           
+          if (transferData.cancelled) continue
+          
           invoiceData.push(invoice)
         } catch (error) {
           console.error(`Error processing transfer ${id}:`, error)
