@@ -12,7 +12,7 @@ export function InvoiceList() {
   const [loading, setLoading] = useState(true)
 
   const { writeContract, data: hash, isPending } = useWriteContract()
-  const { isLoading: isConfirming } = useWaitForTransactionReceipt({ hash })
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
 
   const { data: senderTransferData } = useReadContract({
     address: getSafeTransferAddress(chainId),
@@ -119,6 +119,19 @@ export function InvoiceList() {
     fetchInvoices()
   }, [senderTransferIds, recipientTransferIds, chainId])
 
+  const handleCancelInvoice = async (invoiceId: string) => {
+    try {
+      writeContract({
+        address: getSafeTransferAddress(chainId),
+        abi: SAFE_TRANSFER_ABI,
+        functionName: 'cancelTransfer',
+        args: [BigInt(invoiceId)],
+      })
+    } catch (error) {
+      console.error('Error cancelling invoice:', error)
+    }
+  }
+
 
   const handlePayInvoice = async (invoiceId: string, tokenAddress: string, amount: bigint) => {
     try {
@@ -161,6 +174,20 @@ export function InvoiceList() {
     return claimed 
       ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
       : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+  }
+
+  if (isSuccess) {
+    setTimeout(() => window.location.reload(), 2000)
+    return (
+      <div className="text-center py-8">
+        <div className="text-green-600 text-xl font-semibold mb-4">
+          Invoice Action Completed Successfully!
+        </div>
+        <p className="text-muted-foreground mb-4">
+          The page will refresh automatically.
+        </p>
+      </div>
+    )
   }
 
   if (loading) {
@@ -236,6 +263,18 @@ export function InvoiceList() {
                   className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:bg-muted disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105"
                 >
                   {isPending || isConfirming ? 'Paying...' : 'Pay Invoice'}
+                </button>
+              </div>
+            )}
+            
+            {isRecipient && !invoice.claimed && !invoice.cancelled && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleCancelInvoice(invoice.id)}
+                  disabled={isPending || isConfirming}
+                  className="px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 disabled:bg-muted disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105"
+                >
+                  {isPending || isConfirming ? 'Cancelling...' : 'Cancel Invoice'}
                 </button>
               </div>
             )}
