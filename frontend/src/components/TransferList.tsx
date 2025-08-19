@@ -130,7 +130,7 @@ export function TransferList() {
     }
 
     fetchTransfers()
-  }, [uniqueIds.length, chainId])
+  }, [uniqueIds.length, uniqueIds, chainId])
 
   useEffect(() => {
     if (!address || !chainId) return

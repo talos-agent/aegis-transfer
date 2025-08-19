@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi'
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi'
 import { formatEther, formatUnits } from 'viem'
 import { SAFE_TRANSFER_ABI, getSafeTransferAddress, SUPPORTED_TOKENS } from '@/lib/contract'
 import { ConnectWallet } from '@/components/ConnectWallet'
 import { NetworkWarning } from '@/components/NetworkWarning'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import Link from 'next/link'
 
 export default function InvoicePage() {
 
@@ -170,12 +171,12 @@ export default function InvoicePage() {
           <p className="text-muted-foreground mb-4">
             {error || 'The invoice you are looking for does not exist or has been removed.'}
           </p>
-          <a 
+          <Link 
             href="/"
             className="inline-block px-6 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all duration-200 font-semibold"
           >
             Go to Aegis
-          </a>
+          </Link>
         </div>
       </div>
     )
@@ -194,12 +195,12 @@ export default function InvoicePage() {
           <p className="text-muted-foreground mb-4">
             The invoice has been paid and funds have been sent to the recipient.
           </p>
-          <a 
+          <Link 
             href="/"
             className="inline-block px-6 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all duration-200 font-semibold"
           >
             Go to Aegis
-          </a>
+          </Link>
         </div>
       </div>
     )
