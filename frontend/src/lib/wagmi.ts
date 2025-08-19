@@ -15,7 +15,7 @@ const metadata = {
   icons: ['https://avatars.githubusercontent.com/u/37784886']
 }
 
-const networks: [AppKitNetwork, ...AppKitNetwork[]] = [mainnet, arbitrum]
+const networks: [AppKitNetwork, ...AppKitNetwork[]] = [arbitrum, mainnet]
 
 export const wagmiAdapter = new WagmiAdapter({
   networks,

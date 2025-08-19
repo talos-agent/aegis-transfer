@@ -55,15 +55,29 @@ export const SAFE_TRANSFER_ABI = [
   {
     "type": "function",
     "name": "getSenderTransfers",
-    "inputs": [{"name": "_sender", "type": "address"}],
-    "outputs": [{"name": "", "type": "uint256[]"}],
+    "inputs": [
+      {"name": "_sender", "type": "address"},
+      {"name": "_offset", "type": "uint256"},
+      {"name": "_limit", "type": "uint256"}
+    ],
+    "outputs": [
+      {"name": "transferIds", "type": "uint256[]"},
+      {"name": "total", "type": "uint256"}
+    ],
     "stateMutability": "view"
   },
   {
     "type": "function",
     "name": "getRecipientTransfers",
-    "inputs": [{"name": "_recipient", "type": "address"}],
-    "outputs": [{"name": "", "type": "uint256[]"}],
+    "inputs": [
+      {"name": "_recipient", "type": "address"},
+      {"name": "_offset", "type": "uint256"},
+      {"name": "_limit", "type": "uint256"}
+    ],
+    "outputs": [
+      {"name": "transferIds", "type": "uint256[]"},
+      {"name": "total", "type": "uint256"}
+    ],
     "stateMutability": "view"
   },
   {

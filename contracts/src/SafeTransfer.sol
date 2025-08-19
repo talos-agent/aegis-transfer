@@ -268,26 +268,6 @@ contract SafeTransfer is ISafeTransfer {
     }
 
     /**
-     * @notice Gets all transfer IDs created by a specific sender (legacy function)
-     * @dev This function is kept for backward compatibility but may fail for users with many transfers
-     * @param _sender Address of the sender
-     * @return transferIds Array of transfer IDs created by the sender
-     */
-    function getSenderTransfersLegacy(address _sender) external view returns (uint256[] memory) {
-        return senderTransfers[_sender];
-    }
-
-    /**
-     * @notice Gets all transfer IDs that can be claimed by a specific recipient (legacy function)
-     * @dev This function is kept for backward compatibility but may fail for users with many transfers
-     * @param _recipient Address of the recipient
-     * @return transferIds Array of transfer IDs for the recipient
-     */
-    function getRecipientTransfersLegacy(address _recipient) external view returns (uint256[] memory) {
-        return recipientTransfers[_recipient];
-    }
-
-    /**
      * @notice Checks if a transfer has expired
      * @param _transferId Unique identifier of the transfer
      * @return expired True if the transfer has expired, false otherwise
