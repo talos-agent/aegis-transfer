@@ -10,6 +10,7 @@ import { NetworkWarning } from '@/components/NetworkWarning'
 import { ThemeToggle } from '@/components/ThemeToggle'
 
 export default function InvoicePage() {
+
   const params = useParams()
   const invoiceId = params.id as string
   const { address, isConnected } = useAccount()
