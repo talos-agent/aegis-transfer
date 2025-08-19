@@ -55,7 +55,12 @@ export function AmountInput({
   }, [amount, isUsdMode, priceData, showUsdToggle]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    let value = e.target.value;
+    
+    if (value.startsWith('-')) {
+      value = value.substring(1);
+    }
+    
     setDisplayAmount(value);
 
     if (!showUsdToggle || !priceData) {
@@ -134,16 +139,19 @@ export function AmountInput({
       <div className="relative">
         <input
           type="number"
-          step={isUsdMode ? "0.01" : (selectedToken.decimals === 18 ? "0.001" : "0.01")}
+          step={isUsdMode ? "0.0001" : (selectedToken.decimals === 18 ? "0.000001" : "0.000001")}
+          min="0"
           value={displayAmount}
           onChange={handleInputChange}
           placeholder={getCurrentPlaceholder()}
-          className="w-full px-4 py-3 border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent bg-input text-foreground transition-all duration-200 shadow-sm"
+          className={`w-full py-3 border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent bg-input text-foreground transition-all duration-200 shadow-sm ${
+            isUsdMode && showUsdToggle ? 'pl-8 pr-4' : 'px-4'
+          }`}
           required
         />
         
         {isUsdMode && showUsdToggle && (
-          <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none">
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none">
             $
           </div>
         )}
