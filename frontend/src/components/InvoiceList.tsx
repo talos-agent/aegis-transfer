@@ -124,7 +124,7 @@ export function InvoiceList() {
       writeContract({
         address: getSafeTransferAddress(chainId),
         abi: SAFE_TRANSFER_ABI,
-        functionName: 'cancelTransfer',
+        functionName: 'cancelInvoice',
         args: [BigInt(invoiceId)],
       })
     } catch (error) {

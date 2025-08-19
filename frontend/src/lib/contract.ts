@@ -155,6 +155,13 @@ export const SAFE_TRANSFER_ABI = [
     "stateMutability": "view"
   },
   {
+    "type": "function",
+    "name": "cancelInvoice",
+    "inputs": [{"name": "_invoiceId", "type": "uint256"}],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
     "type": "event",
     "name": "InvoiceCreated",
     "inputs": [

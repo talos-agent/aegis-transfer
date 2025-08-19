@@ -195,6 +195,29 @@ contract SafeTransfer is ISafeTransfer {
     }
 
     /**
+     * @notice Cancels an invoice and marks it as cancelled
+     * @dev Only the invoice recipient (creator) can cancel their invoice
+     * @param _invoiceId Unique identifier of the invoice to cancel
+     * @custom:security Only the invoice recipient can cancel their own invoices
+     */
+    function cancelInvoice(uint256 _invoiceId) external nonReentrant {
+        Transfer storage invoice = transfers[_invoiceId];
+
+        // Validate invoice exists and caller is authorized
+        if (invoice.sender == address(0)) revert InvoiceNotFound();
+        if (!isInvoice[_invoiceId]) revert InvoiceNotFound();
+        if (invoice.recipient != msg.sender) revert NotAuthorized();
+        if (invoice.claimed) revert InvoiceAlreadyPaid();
+        if (invoice.cancelled) revert TransferAlreadyCancelled();
+        if (invoice.expiryTime != type(uint256).max && block.timestamp > invoice.expiryTime) revert TransferExpired();
+
+        // Mark invoice as cancelled
+        invoice.cancelled = true;
+
+        emit TransferCancelled(_invoiceId, msg.sender, invoice.tokenAddress, invoice.amount);
+    }
+
+    /**
      * @notice Retrieves transfer details by ID
      * @param _transferId Unique identifier of the transfer
      * @return transfer Complete transfer information
