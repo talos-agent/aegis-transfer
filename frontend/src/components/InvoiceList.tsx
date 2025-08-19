@@ -8,7 +8,7 @@ import { SAFE_TRANSFER_ABI, getSafeTransferAddress, Transfer, SUPPORTED_TOKENS }
 export function InvoiceList() {
   const { address } = useAccount()
   const chainId = useChainId()
-  const [invoices, setInvoices] = useState<(Transfer & { id: number; description: string; isInvoice: boolean })[]>([])
+  const [invoices, setInvoices] = useState<(Transfer & { id: string; description: string; isInvoice: boolean })[]>([])
   const [loading, setLoading] = useState(true)
 
   const { writeContract, data: hash, isPending } = useWriteContract()
@@ -43,8 +43,8 @@ export function InvoiceList() {
         ...(recipientTransferIds || [])
       ]
 
-      const uniqueIds = [...new Set(allTransferIds.map(id => Number(id)))]
-      const invoiceData: (Transfer & { id: number; description: string; isInvoice: boolean })[] = []
+      const uniqueIds = [...new Set(allTransferIds.map(id => id.toString()))]
+      const invoiceData: (Transfer & { id: string; description: string; isInvoice: boolean })[] = []
       
       for (const id of uniqueIds) {
         try {
@@ -77,7 +77,7 @@ export function InvoiceList() {
   }, [senderTransferIds, recipientTransferIds, chainId])
 
 
-  const handlePayInvoice = async (invoiceId: number, tokenAddress: string, amount: bigint) => {
+  const handlePayInvoice = async (invoiceId: string, tokenAddress: string, amount: bigint) => {
     try {
       const isETH = tokenAddress === '0x0000000000000000000000000000000000000000'
       
