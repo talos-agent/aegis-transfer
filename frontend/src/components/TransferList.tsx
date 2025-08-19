@@ -15,7 +15,8 @@ export function TransferList() {
   const [loading, setLoading] = useState(true)
   const [ensNames, setEnsNames] = useState<Record<string, string | null>>({})
   const [claimCodes, setClaimCodes] = useState<Record<string, string>>({})
-
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set())
+  const [showHiddenOnly, setShowHiddenOnly] = useState(false)
 
   const { writeContract, data: hash, isPending } = useWriteContract()
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
@@ -46,7 +47,7 @@ export function TransferList() {
   useEffect(() => {
     const fetchTransfers = async () => {
       if (uniqueIds.length === 0) {
-        setLoading(false)
+        setTimeout(() => setLoading(false), 0)
         return
       }
 
@@ -121,6 +122,23 @@ export function TransferList() {
 
     fetchTransfers()
   }, [uniqueIds.length, chainId])
+
+  useEffect(() => {
+    if (!address || !chainId) return
+    try {
+      const key = `aegis:hiddenTransfers:${chainId}:${address.toLowerCase()}`
+      const raw = localStorage.getItem(key)
+      if (raw) setHiddenIds(new Set(JSON.parse(raw) as string[]))
+    } catch {}
+  }, [address, chainId])
+
+  useEffect(() => {
+    if (!address || !chainId) return
+    try {
+      const key = `aegis:hiddenTransfers:${chainId}:${address.toLowerCase()}`
+      localStorage.setItem(key, JSON.stringify(Array.from(hiddenIds)))
+    } catch {}
+  }, [hiddenIds, address, chainId])
 
   const handleCancelTransfer = async (transferId: string) => {
     try {
@@ -197,40 +215,78 @@ export function TransferList() {
     )
   }
 
-  if (transfers.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-muted-foreground">No transfers found</p>
-      </div>
-    )
-  }
+  const listToRender = showHiddenOnly
+    ? transfers.filter(t => hiddenIds.has(t.id))
+    : transfers.filter(t => !hiddenIds.has(t.id))
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">My Transfers</h2>
-      
-      {transfers.map((transfer) => {
-        const isSender = transfer.sender.toLowerCase() === address?.toLowerCase()
-        
-        return (
-          <TransferCard 
-            key={transfer.id} 
-            transfer={transfer} 
-            isSender={isSender}
-            formatAmount={formatAmount}
-            getStatusColor={getStatusColor}
-            handleCancelTransfer={handleCancelTransfer}
-            handleClaimTransfer={handleClaimTransfer}
-            handleClaimCodeChange={handleClaimCodeChange}
-            claimCodes={claimCodes}
-            isPending={isPending}
-            isConfirming={isConfirming}
-            isNetworkSupported={isNetworkSupported}
-            chainId={chainId}
-            ensNames={ensNames}
-          />
-        )
-      })}
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-2xl font-bold text-gray-900">My Transfers</h2>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowHiddenOnly(false)}
+            className={`px-3 py-1 rounded-full text-sm ${!showHiddenOnly ? 'bg-primary text-white' : 'bg-muted text-foreground'}`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setShowHiddenOnly(true)}
+            className={`px-3 py-1 rounded-full text-sm ${showHiddenOnly ? 'bg-primary text-white' : 'bg-muted text-foreground'}`}
+          >
+            Hidden
+          </button>
+          {hiddenIds.size > 0 && (
+            <button
+              onClick={() => setHiddenIds(new Set())}
+              className="px-3 py-1 rounded-full text-sm bg-secondary"
+              title="Unhide all"
+            >
+              Clear Hidden
+            </button>
+          )}
+        </div>
+      </div>
+
+      {listToRender.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">
+            {showHiddenOnly ? 'No hidden transfers' : 'No transfers found'}
+          </p>
+        </div>
+      ) : (
+        listToRender.map((transfer) => {
+          const isSender = transfer.sender.toLowerCase() === address?.toLowerCase()
+          const isHidden = hiddenIds.has(transfer.id)
+          return (
+            <TransferCard 
+              key={transfer.id} 
+              transfer={transfer} 
+              isSender={isSender}
+              formatAmount={formatAmount}
+              getStatusColor={getStatusColor}
+              handleCancelTransfer={handleCancelTransfer}
+              handleClaimTransfer={handleClaimTransfer}
+              handleClaimCodeChange={handleClaimCodeChange}
+              claimCodes={claimCodes}
+              isPending={isPending}
+              isConfirming={isConfirming}
+              isNetworkSupported={isNetworkSupported}
+              chainId={chainId}
+              ensNames={ensNames}
+              isHidden={isHidden}
+              onHideToggle={(id, hide) => {
+                setHiddenIds(prev => {
+                  const next = new Set(prev)
+                  if (hide) next.add(id)
+                  else next.delete(id)
+                  return next
+                })
+              }}
+            />
+          )
+        })
+      )}
     </div>
   )
 }
@@ -248,7 +304,9 @@ function TransferCard({
   isConfirming, 
   isNetworkSupported, 
   chainId,
-  ensNames
+  ensNames,
+  isHidden,
+  onHideToggle
 }: {
   transfer: Transfer & { id: string }
   isSender: boolean
@@ -263,6 +321,8 @@ function TransferCard({
   isNetworkSupported: boolean
   chainId: number
   ensNames: Record<string, string | null>
+  isHidden: boolean
+  onHideToggle: (id: string, hide: boolean) => void
 }){
   const { data: transferStatus } = useReadContract({
     address: getSafeTransferAddress(chainId),
@@ -303,6 +363,15 @@ function TransferCard({
           </span>
           <div className="text-xs text-gray-500 mt-1">
             ID: {transfer.id}
+          </div>
+          <div className="mt-2">
+            <button
+              onClick={() => onHideToggle(transfer.id, !isHidden)}
+              className="px-2 py-1 text-xs rounded-md border border-border hover:bg-background/70"
+              title={isHidden ? 'Unhide transfer' : 'Hide transfer'}
+            >
+              {isHidden ? 'Unhide' : 'Hide'}
+            </button>
           </div>
         </div>
       </div>
