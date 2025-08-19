@@ -8,6 +8,7 @@ import { isSupportedNetwork } from '@/lib/network'
 import { NetworkWarning } from './NetworkWarning'
 import { resolveEnsOrAddress, type EnsResolutionResult } from '@/lib/ens'
 import { useInvoiceRefresh } from '@/contexts/InvoiceRefreshContext'
+import { AmountInput } from './AmountInput'
 
 export function CreateInvoice() {
   const [payer, setPayer] = useState('')
@@ -197,20 +198,13 @@ export function CreateInvoice() {
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            Amount ({selectedToken.symbol})
-          </label>
-          <input
-            type="number"
-            step={selectedToken.decimals === 18 ? "0.001" : "0.01"}
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder={selectedToken.symbol === 'ETH' ? '0.1' : '100'}
-            className="w-full px-4 py-3 border border-border rounded-xl focus:ring-2 focus:ring-ring focus:border-transparent bg-input text-foreground transition-all duration-200 shadow-sm"
-            required
-          />
-        </div>
+        <AmountInput
+          amount={amount}
+          onAmountChange={setAmount}
+          selectedToken={selectedToken}
+          label="Amount"
+          placeholder={selectedToken.symbol === 'ETH' ? '0.1' : '100'}
+        />
 
         <div>
           <label className="block text-sm font-medium text-foreground mb-2">
