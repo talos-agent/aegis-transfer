@@ -14,19 +14,22 @@ export function InvoiceList() {
   const { writeContract, data: hash, isPending } = useWriteContract()
   const { isLoading: isConfirming } = useWaitForTransactionReceipt({ hash })
 
-  const { data: senderTransferIds } = useReadContract({
+  const { data: senderTransferData } = useReadContract({
     address: getSafeTransferAddress(chainId),
     abi: SAFE_TRANSFER_ABI,
     functionName: 'getSenderTransfers',
-    args: address ? [address] : undefined,
+    args: address ? [address, BigInt(0), BigInt(100)] : undefined,
   })
 
-  const { data: recipientTransferIds } = useReadContract({
+  const { data: recipientTransferData } = useReadContract({
     address: getSafeTransferAddress(chainId),
     abi: SAFE_TRANSFER_ABI,
     functionName: 'getRecipientTransfers',
-    args: address ? [address] : undefined,
+    args: address ? [address, BigInt(0), BigInt(100)] : undefined,
   })
+
+  const senderTransferIds = senderTransferData?.[0]
+  const recipientTransferIds = recipientTransferData?.[0]
 
   useEffect(() => {
     const fetchInvoices = async () => {
