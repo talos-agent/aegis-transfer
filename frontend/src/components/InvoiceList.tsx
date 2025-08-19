@@ -11,6 +11,7 @@ export function InvoiceList() {
   const chainId = useChainId()
   const [invoices, setInvoices] = useState<(Transfer & { id: string; description: string; isInvoice: boolean })[]>([])
   const [loading, setLoading] = useState(true)
+  const [copiedInvoiceId, setCopiedInvoiceId] = useState<string | null>(null)
 
   const { writeContract, data: hash, isPending } = useWriteContract()
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
@@ -162,6 +163,27 @@ export function InvoiceList() {
     }
   }
 
+  const handleGetLink = async (invoiceId: string) => {
+    const baseUrl = window.location.origin
+    const basePath = process.env.NODE_ENV === 'production' ? '/aegis-transfer' : ''
+    const invoiceUrl = `${baseUrl}${basePath}/invoice/${invoiceId}/`
+    
+    try {
+      await navigator.clipboard.writeText(invoiceUrl)
+      setCopiedInvoiceId(invoiceId)
+      setTimeout(() => setCopiedInvoiceId(null), 2000)
+    } catch (error) {
+      console.error('Failed to copy link:', error)
+      const textArea = document.createElement('textarea')
+      textArea.value = invoiceUrl
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+      setCopiedInvoiceId(invoiceId)
+      setTimeout(() => setCopiedInvoiceId(null), 2000)
+    }
+  }
 
   const formatAmount = (amount: bigint, tokenAddress: string) => {
     const token = SUPPORTED_TOKENS.find(t => t.address.toLowerCase() === tokenAddress.toLowerCase())
@@ -280,6 +302,12 @@ export function InvoiceList() {
                   className="px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 disabled:bg-muted disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105"
                 >
                   {isPending || isConfirming ? 'Cancelling...' : 'Cancel Invoice'}
+                </button>
+                <button
+                  onClick={() => handleGetLink(invoice.id)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105"
+                >
+                  {copiedInvoiceId === invoice.id ? 'Link Copied!' : 'Get Link'}
                 </button>
               </div>
             )}
