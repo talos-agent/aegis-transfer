@@ -11,10 +11,10 @@ export function TransferList() {
   const { address } = useAccount()
   const chainId = useChainId()
   const isNetworkSupported = isSupportedNetwork(chainId)
-  const [transfers, setTransfers] = useState<(Transfer & { id: number })[]>([])
+  const [transfers, setTransfers] = useState<(Transfer & { id: string })[]>([])
   const [loading, setLoading] = useState(true)
   const [ensNames, setEnsNames] = useState<Record<string, string | null>>({})
-  const [claimCodes, setClaimCodes] = useState<Record<number, string>>({})
+  const [claimCodes, setClaimCodes] = useState<Record<string, string>>({})
 
 
   const { writeContract, data: hash, isPending } = useWriteContract()
@@ -41,7 +41,7 @@ export function TransferList() {
     ...(senderTransferIds || []),
     ...(recipientTransferIds || [])
   ]
-  const uniqueIds = [...new Set(allTransferIds.map(id => Number(id)))]
+  const uniqueIds = [...new Set(allTransferIds.map(id => id.toString()))]
 
   useEffect(() => {
     const fetchTransfers = async () => {
@@ -79,7 +79,7 @@ export function TransferList() {
             cancelled: boolean;
           }
           
-          return {
+          const transfer: Transfer & { id: string } = {
             id,
             sender: transferData.sender,
             recipient: transferData.recipient,
@@ -91,6 +91,7 @@ export function TransferList() {
             claimed: transferData.claimed,
             cancelled: transferData.cancelled
           }
+          return transfer
         } catch (error) {
           console.error(`Error fetching transfer ${id}:`, error)
           return null
@@ -121,7 +122,7 @@ export function TransferList() {
     fetchTransfers()
   }, [uniqueIds.length, chainId])
 
-  const handleCancelTransfer = async (transferId: number) => {
+  const handleCancelTransfer = async (transferId: string) => {
     try {
       writeContract({
         address: getSafeTransferAddress(chainId),
@@ -134,7 +135,7 @@ export function TransferList() {
     }
   }
 
-  const handleClaimTransfer = async (transferId: number) => {
+  const handleClaimTransfer = async (transferId: string) => {
     try {
       const claimCode = claimCodes[transferId] || ''
       writeContract({
@@ -148,8 +149,8 @@ export function TransferList() {
     }
   }
 
-  const handleClaimCodeChange = (transferId: number, code: string) => {
-    setClaimCodes((prev: Record<number, string>) => ({ ...prev, [transferId]: code }))
+  const handleClaimCodeChange = (transferId: string, code: string) => {
+    setClaimCodes((prev: Record<string, string>) => ({ ...prev, [transferId]: code }))
   }
 
   const formatAmount = (amount: bigint, tokenAddress: string) => {
@@ -249,14 +250,14 @@ function TransferCard({
   chainId,
   ensNames
 }: {
-  transfer: Transfer & { id: number }
+  transfer: Transfer & { id: string }
   isSender: boolean
   formatAmount: (amount: bigint, tokenAddress: string) => string
   getStatusColor: (status: TransferStatus) => string
-  handleCancelTransfer: (transferId: number) => void
-  handleClaimTransfer: (transferId: number) => void
-  handleClaimCodeChange: (transferId: number, code: string) => void
-  claimCodes: Record<number, string>
+  handleCancelTransfer: (transferId: string) => void
+  handleClaimTransfer: (transferId: string) => void
+  handleClaimCodeChange: (transferId: string, code: string) => void
+  claimCodes: Record<string, string>
   isPending: boolean
   isConfirming: boolean
   isNetworkSupported: boolean
