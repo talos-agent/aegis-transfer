@@ -267,7 +267,6 @@ contract SafeTransfer is ISafeTransfer {
         }
     }
 
-
     /**
      * @notice Checks if a transfer has expired
      * @param _transferId Unique identifier of the transfer
