@@ -37,21 +37,60 @@ export function TransferList() {
   const senderTransferIds = senderTransferData?.[0]
   const recipientTransferIds = recipientTransferData?.[0]
 
+  const allTransferIds = [
+    ...(senderTransferIds || []),
+    ...(recipientTransferIds || [])
+  ]
+  const uniqueIds = [...new Set(allTransferIds.map(id => Number(id)))]
+
   useEffect(() => {
     const fetchTransfers = async () => {
-      if (!senderTransferIds && !recipientTransferIds) return
+      if (uniqueIds.length === 0) {
+        setLoading(false)
+        return
+      }
 
-      const allTransferIds = [
-        ...(senderTransferIds || []),
-        ...(recipientTransferIds || [])
-      ]
-
-      const uniqueIds = [...new Set(allTransferIds.map(id => Number(id)))]
-      
       const transferPromises = uniqueIds.map(async (id) => {
         try {
-          const transfer = await fetch(`/api/transfer/${id}`).then(res => res.json())
-          return { ...transfer, id }
+          const { readContract } = await import('viem/actions')
+          const { createPublicClient, http } = await import('viem')
+          const { mainnet, arbitrum } = await import('viem/chains')
+          
+          const chain = chainId === 42161 ? arbitrum : mainnet
+          const client = createPublicClient({
+            chain,
+            transport: http()
+          })
+          
+          const transferData = await readContract(client, {
+            address: getSafeTransferAddress(chainId),
+            abi: SAFE_TRANSFER_ABI,
+            functionName: 'getTransfer',
+            args: [BigInt(id)]
+          }) as {
+            sender: string;
+            recipient: string;
+            tokenAddress: string;
+            amount: bigint;
+            timestamp: bigint;
+            expiryTime: bigint;
+            claimCode: string;
+            claimed: boolean;
+            cancelled: boolean;
+          }
+          
+          return {
+            id,
+            sender: transferData.sender,
+            recipient: transferData.recipient,
+            tokenAddress: transferData.tokenAddress,
+            amount: transferData.amount,
+            timestamp: transferData.timestamp,
+            expiryTime: transferData.expiryTime,
+            claimCode: transferData.claimCode,
+            claimed: transferData.claimed,
+            cancelled: transferData.cancelled
+          }
         } catch (error) {
           console.error(`Error fetching transfer ${id}:`, error)
           return null
@@ -59,7 +98,7 @@ export function TransferList() {
       })
 
       const transferResults = await Promise.all(transferPromises)
-      const validTransfers = transferResults.filter(Boolean)
+      const validTransfers = transferResults.filter((t): t is NonNullable<typeof t> => t !== null)
       
       setTransfers(validTransfers)
       
@@ -80,7 +119,7 @@ export function TransferList() {
     }
 
     fetchTransfers()
-  }, [senderTransferIds, recipientTransferIds])
+  }, [uniqueIds.length, chainId])
 
   const handleCancelTransfer = async (transferId: number) => {
     try {
