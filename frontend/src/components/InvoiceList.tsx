@@ -48,22 +48,65 @@ export function InvoiceList() {
       
       for (const id of uniqueIds) {
         try {
-          const mockInvoice = {
+          const { readContract } = await import('viem/actions')
+          const { createPublicClient, http } = await import('viem')
+          const { mainnet, arbitrum } = await import('viem/chains')
+          
+          const chain = chainId === 42161 ? arbitrum : mainnet
+          const client = createPublicClient({
+            chain,
+            transport: http()
+          })
+          
+          const isInvoiceFlag = await readContract(client, {
+            address: getSafeTransferAddress(chainId),
+            abi: SAFE_TRANSFER_ABI,
+            functionName: 'getIsInvoice',
+            args: [BigInt(id)]
+          }) as boolean
+          
+          if (!isInvoiceFlag) continue
+          
+          const transferData = await readContract(client, {
+            address: getSafeTransferAddress(chainId),
+            abi: SAFE_TRANSFER_ABI,
+            functionName: 'getTransfer',
+            args: [BigInt(id)]
+          }) as {
+            sender: string;
+            recipient: string;
+            tokenAddress: string;
+            amount: bigint;
+            timestamp: bigint;
+            expiryTime: bigint;
+            claimCode: string;
+            claimed: boolean;
+            cancelled: boolean;
+          }
+          
+          const description = await readContract(client, {
+            address: getSafeTransferAddress(chainId),
+            abi: SAFE_TRANSFER_ABI,
+            functionName: 'getInvoiceDescription',
+            args: [BigInt(id)]
+          }) as string
+          
+          const invoice = {
             id,
-            sender: '0x1234567890123456789012345678901234567890',
-            recipient: '0x0987654321098765432109876543210987654321',
-            tokenAddress: '0x0000000000000000000000000000000000000000',
-            amount: BigInt('1000000000000000000'),
-            timestamp: BigInt(Date.now() / 1000),
-            expiryTime: BigInt(Date.now() / 1000 + 7 * 24 * 60 * 60),
-            claimCode: '',
-            claimed: false,
-            cancelled: false,
-            description: 'Sample invoice',
+            sender: transferData.sender,
+            recipient: transferData.recipient,
+            tokenAddress: transferData.tokenAddress,
+            amount: transferData.amount,
+            timestamp: transferData.timestamp,
+            expiryTime: transferData.expiryTime,
+            claimCode: transferData.claimCode,
+            claimed: transferData.claimed,
+            cancelled: transferData.cancelled,
+            description: description || '',
             isInvoice: true
           }
           
-          invoiceData.push(mockInvoice)
+          invoiceData.push(invoice)
         } catch (error) {
           console.error(`Error processing transfer ${id}:`, error)
         }
