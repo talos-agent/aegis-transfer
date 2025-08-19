@@ -14,14 +14,14 @@ export function InvoiceList() {
   const { writeContract, data: hash, isPending } = useWriteContract()
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
 
-  const { data: senderTransferData } = useReadContract({
+  const { data: senderTransferData, refetch: refetchSenderTransfers } = useReadContract({
     address: getSafeTransferAddress(chainId),
     abi: SAFE_TRANSFER_ABI,
     functionName: 'getSenderTransfers',
     args: address ? [address, BigInt(0), BigInt(100)] : undefined,
   })
 
-  const { data: recipientTransferData } = useReadContract({
+  const { data: recipientTransferData, refetch: refetchRecipientTransfers } = useReadContract({
     address: getSafeTransferAddress(chainId),
     abi: SAFE_TRANSFER_ABI,
     functionName: 'getRecipientTransfers',
@@ -176,19 +176,12 @@ export function InvoiceList() {
       : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
   }
 
-  if (isSuccess) {
-    setTimeout(() => window.location.reload(), 2000)
-    return (
-      <div className="text-center py-8">
-        <div className="text-green-600 text-xl font-semibold mb-4">
-          Invoice Action Completed Successfully!
-        </div>
-        <p className="text-muted-foreground mb-4">
-          The page will refresh automatically.
-        </p>
-      </div>
-    )
-  }
+  useEffect(() => {
+    if (isSuccess) {
+      refetchSenderTransfers()
+      refetchRecipientTransfers()
+    }
+  }, [isSuccess, refetchSenderTransfers, refetchRecipientTransfers])
 
   if (loading) {
     return (
