@@ -1,12 +1,13 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi'
 import { parseEther, parseUnits } from 'viem'
 import { SAFE_TRANSFER_ABI, getSafeTransferAddress, SUPPORTED_TOKENS, TokenInfo } from '@/lib/contract'
 import { isSupportedNetwork } from '@/lib/network'
 import { NetworkWarning } from './NetworkWarning'
 import { resolveEnsOrAddress, type EnsResolutionResult } from '@/lib/ens'
+import { useInvoiceRefresh } from '@/contexts/InvoiceRefreshContext'
 
 export function CreateInvoice() {
   const [payer, setPayer] = useState('')
@@ -24,6 +25,7 @@ export function CreateInvoice() {
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
   })
+  const { triggerInvoiceRefresh } = useInvoiceRefresh()
 
   const safeTransferAddress = getSafeTransferAddress(chainId)
   const isNetworkSupported = isSupportedNetwork(chainId)
@@ -99,6 +101,19 @@ export function CreateInvoice() {
     }
   }
 
+  useEffect(() => {
+    if (isSuccess) {
+      triggerInvoiceRefresh()
+      setPayer('')
+      setAmount('')
+      setDescription('')
+      setExpiryDays('7')
+      setSelectedToken(SUPPORTED_TOKENS[0])
+      setEnsResolution(null)
+      setResolvedAddress(null)
+    }
+  }, [isSuccess, triggerInvoiceRefresh])
+
   if (isSuccess) {
     return (
       <div className="text-center py-8">
@@ -106,14 +121,8 @@ export function CreateInvoice() {
           Invoice Created Successfully!
         </div>
         <p className="text-muted-foreground mb-4">
-          Your invoice has been created and the payer can now pay it.
+          Your invoice has been created and the list has been updated automatically.
         </p>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-6 py-3 bg-gradient-to-r from-primary to-primary-700 text-primary-foreground rounded-xl hover:from-primary-600 hover:to-primary-800 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
-        >
-          Create Another Invoice
-        </button>
       </div>
     )
   }

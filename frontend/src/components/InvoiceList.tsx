@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi'
 import { formatEther, formatUnits } from 'viem'
 import { SAFE_TRANSFER_ABI, getSafeTransferAddress, Transfer, SUPPORTED_TOKENS } from '@/lib/contract'
+import { useInvoiceRefresh } from '@/contexts/InvoiceRefreshContext'
 
 export function InvoiceList() {
   const { address } = useAccount()
@@ -13,6 +14,7 @@ export function InvoiceList() {
 
   const { writeContract, data: hash, isPending } = useWriteContract()
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
+  const { registerRefreshCallback } = useInvoiceRefresh()
 
   const { data: senderTransferData, refetch: refetchSenderTransfers } = useReadContract({
     address: getSafeTransferAddress(chainId),
@@ -182,6 +184,14 @@ export function InvoiceList() {
       refetchRecipientTransfers()
     }
   }, [isSuccess, refetchSenderTransfers, refetchRecipientTransfers])
+
+  useEffect(() => {
+    const refreshInvoices = () => {
+      refetchSenderTransfers()
+      refetchRecipientTransfers()
+    }
+    registerRefreshCallback(refreshInvoices)
+  }, [registerRefreshCallback, refetchSenderTransfers, refetchRecipientTransfers])
 
   if (loading) {
     return (
