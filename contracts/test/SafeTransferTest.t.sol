@@ -322,6 +322,113 @@ contract SafeTransferTest is Test {
         safeTransfer.payInvoice{value: invoiceAmount}(invoiceId);
     }
 
+    function test_CancelInvoice() public {
+        address payer = address(0x3);
+        uint256 invoiceAmount = 0.5 ether;
+        string memory description = "Payment for services";
+
+        vm.prank(recipient);
+        uint256 invoiceId = safeTransfer.createInvoice(payer, address(0), invoiceAmount, 7 days, description);
+
+        vm.prank(recipient);
+        safeTransfer.cancelInvoice(invoiceId);
+
+        ISafeTransfer.Transfer memory invoice = safeTransfer.getTransfer(invoiceId);
+        assertTrue(invoice.cancelled);
+        assertFalse(invoice.claimed);
+    }
+
+    function test_CancelERC20Invoice() public {
+        address payer = address(0x3);
+        uint256 invoiceAmount = 500 * 10 ** 18;
+        string memory description = "Payment for services";
+
+        vm.prank(recipient);
+        uint256 invoiceId = safeTransfer.createInvoice(payer, address(token), invoiceAmount, 7 days, description);
+
+        vm.prank(recipient);
+        safeTransfer.cancelInvoice(invoiceId);
+
+        ISafeTransfer.Transfer memory invoice = safeTransfer.getTransfer(invoiceId);
+        assertTrue(invoice.cancelled);
+        assertFalse(invoice.claimed);
+    }
+
+    function test_CannotCancelInvoiceAsWrongCaller() public {
+        address payer = address(0x3);
+        uint256 invoiceAmount = 0.5 ether;
+
+        vm.prank(recipient);
+        uint256 invoiceId = safeTransfer.createInvoice(payer, address(0), invoiceAmount, 7 days, "test");
+
+        vm.prank(payer);
+        vm.expectRevert(ISafeTransfer.NotAuthorized.selector);
+        safeTransfer.cancelInvoice(invoiceId);
+    }
+
+    function test_CannotCancelPaidInvoice() public {
+        address payer = address(0x3);
+        uint256 invoiceAmount = 0.5 ether;
+
+        vm.deal(payer, 10 ether);
+
+        vm.prank(recipient);
+        uint256 invoiceId = safeTransfer.createInvoice(payer, address(0), invoiceAmount, 7 days, "test");
+
+        vm.prank(payer);
+        safeTransfer.payInvoice{value: invoiceAmount}(invoiceId);
+
+        vm.prank(recipient);
+        vm.expectRevert(ISafeTransfer.InvoiceAlreadyPaid.selector);
+        safeTransfer.cancelInvoice(invoiceId);
+    }
+
+    function test_CannotCancelAlreadyCancelledInvoice() public {
+        address payer = address(0x3);
+        uint256 invoiceAmount = 0.5 ether;
+
+        vm.prank(recipient);
+        uint256 invoiceId = safeTransfer.createInvoice(payer, address(0), invoiceAmount, 7 days, "test");
+
+        vm.prank(recipient);
+        safeTransfer.cancelInvoice(invoiceId);
+
+        vm.prank(recipient);
+        vm.expectRevert(ISafeTransfer.TransferAlreadyCancelled.selector);
+        safeTransfer.cancelInvoice(invoiceId);
+    }
+
+    function test_CannotCancelExpiredInvoice() public {
+        address payer = address(0x3);
+        uint256 invoiceAmount = 0.5 ether;
+
+        vm.prank(recipient);
+        uint256 invoiceId = safeTransfer.createInvoice(payer, address(0), invoiceAmount, 1 days, "test");
+
+        vm.warp(block.timestamp + 2 days);
+
+        vm.prank(recipient);
+        vm.expectRevert(ISafeTransfer.TransferExpired.selector);
+        safeTransfer.cancelInvoice(invoiceId);
+    }
+
+    function test_CannotCancelNonExistentInvoice() public {
+        uint256 nonExistentId = 999;
+
+        vm.prank(recipient);
+        vm.expectRevert(ISafeTransfer.InvoiceNotFound.selector);
+        safeTransfer.cancelInvoice(nonExistentId);
+    }
+
+    function test_CannotCancelRegularTransferWithCancelInvoice() public {
+        vm.prank(sender);
+        uint256 transferId = safeTransfer.createTransfer{value: transferAmount}(recipient, address(0), 0, 0, "");
+
+        vm.prank(sender);
+        vm.expectRevert(ISafeTransfer.InvoiceNotFound.selector);
+        safeTransfer.cancelInvoice(transferId);
+    }
+
     function test_ReentrancyProtectionClaimTransfer() public {
         MaliciousRecipient malicious = new MaliciousRecipient(safeTransfer);
 
