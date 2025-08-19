@@ -63,6 +63,15 @@ export function TransferList() {
             transport: http()
           })
           
+          const isInvoiceFlag = await readContract(client, {
+            address: getSafeTransferAddress(chainId),
+            abi: SAFE_TRANSFER_ABI,
+            functionName: 'getIsInvoice',
+            args: [BigInt(id)]
+          }) as boolean
+          
+          if (isInvoiceFlag) return null
+          
           const transferData = await readContract(client, {
             address: getSafeTransferAddress(chainId),
             abi: SAFE_TRANSFER_ABI,
